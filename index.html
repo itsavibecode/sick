@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Illness Tracker — Track · Analyze · Prevent</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0d1117;
+  --bg-card: #161b22;
+  --bg-tertiary: #21262d;
+  --bg-input: #0d1117;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent: #58a6ff;
+  --accent-warm: #f78166;
+  --border: #30363d;
+  --danger: #f85149;
+  --success: #3fb950;
+  --warning: #d29922;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Layout ── */
+.header {
+  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, #58a6ff, #a371f7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.header .sub { font-size: 12px; color: var(--text-secondary); }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.nav {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--bg-card); overflow-x: auto;
+}
+.nav button {
+  flex: 1; padding: 14px 8px; border: none; background: transparent;
+  color: var(--text-secondary); font-size: 13px; cursor: pointer;
+  border-bottom: 2px solid transparent; font-family: inherit;
+  transition: all 0.2s; min-width: 80px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.nav button.active { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
+.nav button .nav-icon { font-size: 18px; }
+
+.content { padding: 20px; max-width: 800px; margin: 0 auto; }
+
+/* ── Components ── */
+.card {
+  background: var(--bg-card); border-radius: 16px; padding: 24px;
+  border: 1px solid var(--border); margin-bottom: 12px;
+}
+.btn {
+  padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg-tertiary); color: var(--text-primary);
+  font-size: 13px; cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: opacity 0.2s;
+}
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn-outline { background: transparent; border-color: var(--accent); color: var(--accent); }
+.btn-primary {
+  background: linear-gradient(135deg, #58a6ff, #a371f7);
+  border: none; color: #fff; font-weight: 700; font-size: 16px;
+  padding: 14px 28px; border-radius: 12px; width: 100%;
+}
+.btn-google {
+  background: #fff; color: #333; border: 1px solid #ddd;
+  padding: 10px 20px; border-radius: 10px; font-weight: 600;
+  font-size: 14px; display: inline-flex; align-items: center; gap: 10px;
+}
+.btn-sm { padding: 6px 14px; border-radius: 8px; font-size: 12px; }
+.btn-danger { color: var(--danger); }
+.btn-accent { color: var(--accent); }
+
+.label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.input, .select, .textarea {
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg-input);
+  color: var(--text-primary); font-size: 14px; font-family: inherit;
+  outline: none; margin-bottom: 16px;
+}
+.select { appearance: none; }
+.textarea { resize: vertical; }
+
+.section-title {
+  margin: 0 0 14px; font-size: 15px; font-weight: 600; color: var(--accent);
+}
+
+/* Tags */
+.tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tag {
+  padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary);
+  font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.tag.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card { text-align: center; padding: 16px; }
+.stat-value { font-size: 28px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Risk bar */
+.risk-bar-track { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+.risk-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+
+/* Symptom chips in history */
+.chip {
+  padding: 4px 12px; border-radius: 12px; font-size: 12px;
+  background: rgba(88,166,255,0.12); color: var(--accent);
+  display: inline-block;
+}
+
+/* Entry row */
+.entry-row {
+  padding: 14px; border-radius: 12px; background: var(--bg-tertiary);
+  margin-bottom: 8px; display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 8px;
+}
+
+/* Grid helpers */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+
+/* Contact row */
+.contact-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.contact-row input { flex: 1; }
+
+/* Auth banner */
+.auth-banner {
+  padding: 12px 20px; background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px; font-size: 13px;
+}
+.auth-banner .user-info { display: flex; align-items: center; gap: 10px; }
+.auth-banner .user-avatar {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent);
+}
+
+/* Timing card */
+.timing-box {
+  text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 12px;
+}
+.timing-value { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.timing-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* freq bar */
+.freq-row { margin-bottom: 8px; }
+.freq-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+.freq-track { height: 4px; background: var(--bg-tertiary); border-radius: 2px; }
+.freq-fill { height: 100%; border-radius: 2px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  padding: 12px 24px; border-radius: 12px; background: var(--bg-card);
+  border: 1px solid var(--border); color: var(--text-primary);
+  font-size: 14px; font-weight: 500; z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Hidden */
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .header { padding: 12px 16px; }
+  .content { padding: 14px; }
+  .header-actions { width: 100%; }
+  .header-actions .btn { flex: 1; justify-content: center; font-size: 12px; padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- Firebase SDKs (compat for simplicity)   -->
+<!-- ════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<!-- ════════════════════════════════════════ -->
+<!-- HTML Structure                          -->
+<!-- ════════════════════════════════════════ -->
+
+<!-- Auth Banner -->
+<div id="auth-banner" class="auth-banner">
+  <div id="auth-signed-out">
+    <span style="color:var(--text-secondary)">Sign in to sync data across devices</span>
+  </div>
+  <div id="auth-signed-in" class="user-info hidden">
+    <img id="user-avatar" class="user-avatar" src="" alt="">
+    <span id="user-name" style="font-weight:600"></span>
+  </div>
+  <div>
+    <button id="btn-signin" class="btn-google" onclick="signIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 000 24c0 3.77.87 7.34 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <button id="btn-signout" class="btn btn-sm hidden" onclick="signOut()" style="margin-left:8px">Sign Out</button>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🩺</div>
+    <div>
+      <h1>Illness Tracker</h1>
+      <div class="sub">Track · Analyze · Prevent</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="exportICS()" id="btn-export-ics" disabled>📅 Export .ics</button>
+    <button class="btn" onclick="exportJSON()" id="btn-export-json" disabled>💾 Export JSON</button>
+    <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">📂 Import</button>
+    <input type="file" id="import-file" accept=".json" onchange="importJSON(event)" style="display:none">
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav" id="nav">
+  <button class="active" data-view="dashboard" onclick="switchView('dashboard')">
+    <span class="nav-icon">◉</span> Dashboard
+  </button>
+  <button data-view="log" onclick="switchView('log')">
+    <span class="nav-icon">✚</span> Log Illness
+  </button>
+  <button data-view="history" onclick="switchView('history')">
+    <span class="nav-icon">☰</span> History
+  </button>
+  <button data-view="analysis" onclick="switchView('analysis')">
+    <span class="nav-icon">◈</span> Analysis
+  </button>
+</div>
+
+<!-- Views -->
+<div class="content">
+  <div id="view-dashboard"></div>
+  <div id="view-log" class="hidden"></div>
+  <div id="view-history" class="hidden"></div>
+  <div id="view-analysis" class="hidden"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- JavaScript                              -->
+<!-- ════════════════════════════════════════ -->
+<script>
+// ─── State ───
+let entries = [];
+let currentView = 'dashboard';
+let editingId = null;
+let firebaseReady = false;
+let currentUser = null;
+let db = null;
+
+const SYMPTOMS = [
+  "Fever","Chills","Cough","Sore Throat","Runny Nose","Congestion",
+  "Sneezing","Headache","Body Aches","Fatigue","Nausea","Vomiting",
+  "Diarrhea","Loss of Taste/Smell","Shortness of Breath","Dizziness",
+  "Ear Pain","Eye Irritation","Rash","Swollen Glands"
+];
+const SEVERITY = ["Mild","Moderate","Severe"];
+const LOCATIONS = [
+  "Home","Office/Work","School","Gym","Restaurant","Public Transit",
+  "Grocery Store","Hospital/Clinic","Airport/Travel","Social Gathering","Outdoors","Other"
+];
+const ACTIVITIES = [
+  "Working","Exercising","Traveling","Socializing","Cooking/Eating Out",
+  "Shopping","Commuting","Childcare","Attending Event","Other"
+];
+
+// ─── Helpers ───
+const genId = () => Math.random().toString(36).slice(2, 11);
+const daysBetween = (a, b) => Math.round(Math.abs(new Date(a) - new Date(b)) / 86400000);
+const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+const esc = (s) => {
+  if (typeof s !== 'string') return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+};
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+function updateExportButtons() {
+  document.getElementById('btn-export-ics').disabled = !entries.length;
+  document.getElementById('btn-export-json').disabled = !entries.length;
+}
+
+// ─── Firebase ───
+function initFirebase() {
+  try {
+    const config = {
+      apiKey: "AIzaSyCR7AHHq8nIu_k7usHiItQCJIu_6Lo-p6A",
+      authDomain: "illnesstracker-8d888.firebaseapp.com",
+      projectId: "illnesstracker-8d888",
+      storageBucket: "illnesstracker-8d888.firebasestorage.app",
+      messagingSenderId: "660525580864",
+      appId: "1:660525580864:web:ba78d04b13147a2b34d5a5",
+      measurementId: "G-RNQ6FDPBH4"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(config);
+    }
+    db = firebase.firestore();
+    firebaseReady = true;
+
+    firebase.auth().onAuthStateChanged(user => {
+      currentUser = user;
+      updateAuthUI();
+      if (user) loadFromFirestore();
+    });
+  } catch(e) {
+    console.warn('Firebase init failed:', e);
+  }
+}
+
+function updateAuthUI() {
+  const signedOut = document.getElementById('auth-signed-out');
+  const signedIn = document.getElementById('auth-signed-in');
+  const btnIn = document.getElementById('btn-signin');
+  const btnOut = document.getElementById('btn-signout');
+  if (currentUser) {
+    signedOut.classList.add('hidden');
+    signedIn.classList.remove('hidden');
+    btnIn.classList.add('hidden');
+    btnOut.classList.remove('hidden');
+    document.getElementById('user-avatar').src = currentUser.photoURL || '';
+    document.getElementById('user-name').textContent = currentUser.displayName || currentUser.email;
+  } else {
+    signedOut.classList.remove('hidden');
+    signedIn.classList.add('hidden');
+    btnIn.classList.remove('hidden');
+    btnOut.classList.add('hidden');
+  }
+}
+
+function signIn() {
+  if (!firebaseReady) { showToast('⚠️ Firebase not ready yet'); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).catch(e => {
+    showToast('⚠️ Sign-in failed: ' + e.message);
+  });
+}
+
+function signOut() {
+  if (!firebaseReady) return;
+  firebase.auth().signOut();
+  showToast('Signed out');
+}
+
+async function loadFromFirestore() {
+  if (!firebaseReady || !currentUser) return;
+  try {
+    const doc = await db.collection('users').doc(currentUser.uid).get();
+    if (doc.exists && doc.data().entries) {
+      const remote = doc.data().entries;
+      // Merge: remote wins for conflicts, keep unique locals
+      const remoteIds = new Set(remote.map(e => e.id));
+      const localOnly = entries.filter(e => !remoteIds.has(e.id));
+      entries = [...remote, ...localOnly];
+      if (localOnly.length > 0) saveToFirestore(); // push local-only back
+      saveLocal();
+      render();
+      showToast('✅ Data synced from cloud');
+    } else if (entries.length > 0) {
+      saveToFirestore(); // first sync: push local data up
+    }
+  } catch(e) {
+    console.error('Firestore load error:', e);
+  }
+}
+
+async function saveToFirestore() {
+  if (!firebaseReady || !currentUser) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).set({
+      entries: entries,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) {
+    console.error('Firestore save error:', e);
+  }
+}
+
+// ─── Local Storage ───
+function saveLocal() {
+  try { localStorage.setItem('illness_entries', JSON.stringify(entries)); } catch(e) {}
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem('illness_entries');
+    if (raw) entries = JSON.parse(raw);
+  } catch(e) {}
+}
+
+function persist() {
+  saveLocal();
+  saveToFirestore();
+  updateExportButtons();
+}
+
+// ─── Export/Import ───
+function createICSEvent(e) {
+  const start = e.symptomStart.replace(/[-:]/g, '').split('T').join('T') + '00';
+  const end = e.recoveryDate ? e.recoveryDate.replace(/-/g, '') + 'T235959' : start;
+  const symp = (e.symptoms || []).join(', ');
+  return `BEGIN:VEVENT\r\nDTSTART:${start}\r\nDTEND:${end}\r\nSUMMARY:🤒 ${e.diagnosis||'Illness'}\r\nDESCRIPTION:Symptoms: ${symp}\\nSeverity: ${e.severity}\\nLocation: ${e.location}\r\nLOCATION:${e.locationDetail||e.location}\r\nUID:${e.id}@illnesstracker\r\nEND:VEVENT`;
+}
+function exportICS() {
+  const cal = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//IllnessTracker//EN\r\nCALSCALE:GREGORIAN\r\n${entries.map(createICSEvent).join('\r\n')}\r\nEND:VCALENDAR`;
+  dl(new Blob([cal],{type:'text/calendar'}), 'illness-log.ics');
+}
+function exportJSON() {
+  dl(new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}), 'illness-data.json');
+}
+function dl(blob, name) {
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = u; a.download = name; a.click();
+  URL.revokeObjectURL(u);
+}
+function importJSON(evt) {
+  const f = evt.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        const ids = new Set(entries.map(x => x.id));
+        const fresh = data.filter(d => !ids.has(d.id));
+        entries = [...fresh, ...entries];
+        persist(); render();
+        showToast(`✅ Imported ${fresh.length} new entries`);
+      }
+    } catch { showToast('⚠️ Invalid JSON file'); }
+  };
+  r.readAsText(f);
+  evt.target.value = '';
+}
+
+// ─── Analysis Engine ───
+function analyze() {
+  if (entries.length < 1) return null;
+  const sf={}, lf={}, cf={}, af={}, mf={}, df={}, gaps=[];
+  const sorted = [...entries].sort((a,b) => new Date(a.symptomStart)-new Date(b.symptomStart));
+  sorted.forEach((e,i) => {
+    (e.symptoms||[]).forEach(s => sf[s]=(sf[s]||0)+1);
+    if(e.location) lf[e.location]=(lf[e.location]||0)+1;
+    if(e.activity) af[e.activity]=(af[e.activity]||0)+1;
+    const mo = new Date(e.symptomStart).toLocaleString('en-US',{month:'long'});
+    mf[mo]=(mf[mo]||0)+1;
+    const dow = new Date(e.symptomStart).toLocaleString('en-US',{weekday:'long'});
+    df[dow]=(df[dow]||0)+1;
+    (e.contacts||[]).forEach(c => { const n=c.toLowerCase().trim(); if(n) cf[n]=(cf[n]||0)+1; });
+    if(i>0) gaps.push(daysBetween(e.symptomStart, sorted[i-1].symptomStart));
+  });
+  const top = (o,n) => Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  const topS=top(sf,5), topL=top(lf,3), topC=top(cf,3), topA=top(af,3);
+  const peakM=top(mf,1)[0], peakD=top(df,1)[0];
+  const avgGap = gaps.length ? Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length) : null;
+  const withRec = sorted.filter(e=>e.recoveryDate);
+  const avgDur = withRec.length ? Math.round(withRec.reduce((s,e)=>s+daysBetween(e.symptomStart,e.recoveryDate),0)/withRec.length) : null;
+
+  const risks = [];
+  const n = entries.length;
+  if(topL.length && topL[0][1]>=2) risks.push({factor:`Recurring location: ${topL[0][0]}`,score:Math.min(topL[0][1]/n,1),detail:`${topL[0][1]} of ${n} illnesses at "${topL[0][0]}"`});
+  if(topC.length && topC[0][1]>=2) risks.push({factor:`Recurring contact: ${topC[0][0]}`,score:Math.min(topC[0][1]/n,1),detail:`"${topC[0][0]}" near you during ${topC[0][1]} events`});
+  if(peakM && peakM[1]>=2) risks.push({factor:`Seasonal: ${peakM[0]}`,score:Math.min(peakM[1]/n,1),detail:`${peakM[1]} illnesses in ${peakM[0]}`});
+  if(topA.length && topA[0][1]>=2) risks.push({factor:`Activity: ${topA[0][0]}`,score:Math.min(topA[0][1]/n,1),detail:`"${topA[0][0]}" before ${topA[0][1]} events`});
+  if(avgGap!==null && avgGap<30) risks.push({factor:'Frequent illness cycle',score:Math.min(1,30/(avgGap||1)*0.3),detail:`Avg gap only ${avgGap} days`});
+  risks.sort((a,b)=>b.score-a.score);
+
+  return {total:n, topS, topL, topC, topA, peakM, peakD, avgGap, avgDur, risks};
+}
+
+// ─── View Switching ───
+function switchView(v) {
+  currentView = v;
+  ['dashboard','log','history','analysis'].forEach(id => {
+    document.getElementById('view-'+id).classList.toggle('hidden', id!==v);
+  });
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view===v);
+  });
+  if (v !== 'log') { editingId = null; }
+  render();
+}
+
+// ─── Form Helpers ───
+let formSymptoms = [];
+
+function toggleSymptom(s) {
+  const i = formSymptoms.indexOf(s);
+  if (i>=0) formSymptoms.splice(i,1); else formSymptoms.push(s);
+  renderSymptomTags();
+}
+
+function renderSymptomTags() {
+  const container = document.getElementById('symptom-tags');
+  if (!container) return;
+  container.innerHTML = SYMPTOMS.map(s =>
+    `<button class="tag ${formSymptoms.includes(s)?'active':''}" onclick="toggleSymptom('${s}')">${esc(s)}</button>`
+  ).join('');
+}
+
+function addContact() {
+  const container = document.getElementById('contacts-list');
+  const idx = container.children.length;
+  const row = document.createElement('div');
+  row.className = 'contact-row';
+  row.innerHTML = `<input class="input" style="margin-bottom:0" placeholder="Contact ${idx+1}" data-contact>
+    <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>`;
+  container.appendChild(row);
+}
+
+function submitForm() {
+  const f = (id) => document.getElementById(id)?.value || '';
+  const symptomStart = f('f-start');
+  if (!symptomStart || formSymptoms.length===0) {
+    showToast('⚠️ Add a start date and at least one symptom');
+    return;
+  }
+  const contacts = [...document.querySelectorAll('[data-contact]')].map(i=>i.value).filter(c=>c.trim());
+  const entry = {
+    id: editingId || genId(),
+    symptomStart,
+    recoveryDate: f('f-recovery'),
+    symptoms: [...formSymptoms],
+    severity: f('f-severity') || 'Mild',
+    temperature: f('f-temp'),
+    location: f('f-location'),
+    locationDetail: f('f-location-detail'),
+    activity: f('f-activity'),
+    contacts,
+    diagnosis: f('f-diagnosis'),
+    notes: f('f-notes'),
+    createdAt: new Date().toISOString()
+  };
+  if (editingId) {
+    entries = entries.map(e => e.id===editingId ? entry : e);
+    showToast('✅ Entry updated');
+  } else {
+    entries.unshift(entry);
+    showToast('✅ Illness logged');
+  }
+  editingId = null;
+  formSymptoms = [];
+  persist();
+  switchView('history');
+}
+
+function editEntry(id) {
+  const e = entries.find(x => x.id===id);
+  if (!e) return;
+  editingId = id;
+  formSymptoms = [...(e.symptoms||[])];
+  switchView('log');
+  // Populate after render
+  setTimeout(() => {
+    const setVal = (sel, val) => { const el=document.getElementById(sel); if(el) el.value=val||''; };
+    setVal('f-start', e.symptomStart);
+    setVal('f-recovery', e.recoveryDate);
+    setVal('f-severity', e.severity);
+    setVal('f-temp', e.temperature);
+    setVal('f-location', e.location);
+    setVal('f-location-detail', e.locationDetail);
+    setVal('f-activity', e.activity);
+    setVal('f-diagnosis', e.diagnosis);
+    setVal('f-notes', e.notes);
+    renderSymptomTags();
+    // contacts
+    const cl = document.getElementById('contacts-list');
+    cl.innerHTML = '';
+    (e.contacts && e.contacts.length ? e.contacts : ['']).forEach((c,i) => {
+      const row = document.createElement('div');
+      row.className = 'contact-row';
+      row.innerHTML = `<input class="input" style="margin-bottom:0" placeholder="Contact ${i+1}" data-contact value="${esc(c)}">
+        ${i>0?'<button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>':''}`;
+      cl.appendChild(row);
+    });
+  }, 0);
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id!==id);
+  persist(); render();
+  showToast('🗑️ Entry deleted');
+}
+
+// ─── Render ───
+function render() {
+  updateExportButtons();
+  const a = analyze();
+
+  // Dashboard
+  document.getElementById('view-dashboard').innerHTML = renderDashboard(a);
+
+  // Log
+  if (currentView === 'log') {
+    document.getElementById('view-log').innerHTML = renderLogForm();
+    renderSymptomTags();
+    if (!editingId) {
+      // Add initial contact row
+      const cl = document.getElementById('contacts-list');
+      if (cl && cl.children.length===0) {
+        const row = document.createElement('div');
+        row.className = 'contact-row';
+        row.innerHTML = `<input class="input" style="margin-bottom:0" placeholder="Contact 1" data-contact>`;
+        cl.appendChild(row);
+      }
+    }
+  }
+
+  // History
+  document.getElementById('view-history').innerHTML = renderHistory();
+
+  // Analysis
+  document.getElementById('view-analysis').innerHTML = renderAnalysis(a);
+}
+
+function riskBarHTML(score, label) {
+  const pct = Math.round(score*100);
+  const color = pct>66?'#e74c3c':pct>33?'#f39c12':'#27ae60';
+  return `<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;color:var(--text-secondary)">
+      <span>${esc(label)}</span><span style="color:${color};font-weight:700">${pct}%</span>
+    </div>
+    <div class="risk-bar-track"><div class="risk-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+  </div>`;
+}
+
+function freqBarHTML(name, count, total, color) {
+  return `<div class="freq-row">
+    <div class="freq-header"><span style="color:var(--text-secondary)">${esc(name)}</span>
+    <span style="font-family:'JetBrains Mono';color:${color}">${count}</span></div>
+    <div class="freq-track"><div class="freq-fill" style="width:${(count/total)*100}%;background:${color}"></div></div>
+  </div>`;
+}
+
+function renderDashboard(a) {
+  const stats = `<div class="stats-grid">
+    ${[
+      {l:'Total Illnesses', v:entries.length, c:'var(--accent)'},
+      {l:'Avg Duration', v:a?.avgDur?a.avgDur+'d':'—', c:'var(--accent-warm)'},
+      {l:'Avg Gap', v:a?.avgGap?a.avgGap+'d':'—', c:'var(--success)'},
+      {l:'Risk Factors', v:a?.risks.length||0, c:'var(--warning)'}
+    ].map(s=>`<div class="card stat-card"><div class="stat-value" style="color:${s.c}">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('')}
+  </div>`;
+
+  if (!entries.length) {
+    return stats + `<div class="card" style="text-align:center;padding:48px">
+      <div style="font-size:48px;margin-bottom:16px">🏥</div>
+      <h2 style="font-size:20px;font-weight:600;margin-bottom:8px">No illnesses logged yet</h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px">Start tracking to uncover patterns in when, where, and how you get sick.</p>
+      <button class="btn-primary" style="max-width:280px;margin:0 auto" onclick="switchView('log')">Log Your First Illness</button>
+    </div>`;
+  }
+
+  let riskHTML = '';
+  if (a && a.risks.length) {
+    riskHTML = `<div class="card">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <span style="color:var(--warning)">⚠</span> Top Risk Factors</h3>
+      ${a.risks.map(r => riskBarHTML(r.score, r.factor) + `<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 12px 4px">${esc(r.detail)}</div>`).join('')}
+    </div>`;
+  }
+
+  const recent = [...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart)).slice(0,3);
+  const recentHTML = `<div class="card">
+    <h3 style="font-size:16px;font-weight:600;margin-bottom:16px">Recent Illnesses</h3>
+    ${recent.map(e => `<div class="entry-row">
+      <div>
+        <div style="font-weight:600;font-size:14px">${esc(e.diagnosis||'Undiagnosed')}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${fmtDate(e.symptomStart)} · ${esc(e.severity)} · ${esc(e.location)}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${(e.symptoms||[]).slice(0,3).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}
+        ${(e.symptoms||[]).length>3?`<span style="font-size:11px;color:var(--text-secondary);padding:3px 6px">+${e.symptoms.length-3}</span>`:''}
+      </div>
+    </div>`).join('')}
+  </div>`;
+
+  return stats + riskHTML + recentHTML;
+}
+
+function renderLogForm() {
+  const selOpts = (arr) => arr.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  return `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">${editingId?'Edit Illness Entry':'Log New Illness'}</h2>
+
+  <div class="card">
+    <h3 class="section-title">📅 When</h3>
+    <div class="grid-2">
+      <div><label class="label">Symptom Start *</label><input class="input" type="datetime-local" id="f-start"></div>
+      <div><label class="label">Recovery Date</label><input class="input" type="date" id="f-recovery"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title">🤒 Symptoms *</h3>
+    <div id="symptom-tags" class="tag-grid"></div>
+    <div class="grid-2">
+      <div><label class="label">Severity</label><select class="select" id="f-severity"><option value="">Select...</option>${selOpts(SEVERITY)}</select></div>
+      <div><label class="label">Temperature (°F)</label><input class="input" type="number" step="0.1" placeholder="e.g. 101.2" id="f-temp"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title">📍 Where & What</h3>
+    <label class="label">General Location</label>
+    <select class="select" id="f-location"><option value="">Select...</option>${selOpts(LOCATIONS)}</select>
+    <label class="label">Specific Location Details</label>
+    <input class="input" placeholder="e.g. Trader Joe's on Clark St" id="f-location-detail">
+    <label class="label">What were you doing?</label>
+    <select class="select" id="f-activity"><option value="">Select...</option>${selOpts(ACTIVITIES)}</select>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title">👥 People Nearby</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Anyone sick near you or in close contact before symptoms.</p>
+    <div id="contacts-list"></div>
+    <button class="btn" style="border-style:dashed;margin-top:4px" onclick="addContact()">+ Add Contact</button>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title">📝 Details</h3>
+    <label class="label">Diagnosis (if known)</label>
+    <input class="input" placeholder="e.g. Cold, Flu, COVID, Strep" id="f-diagnosis">
+    <label class="label">Notes</label>
+    <textarea class="input textarea" rows="3" placeholder="Medications, stress, sleep, travel..." id="f-notes"></textarea>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <button class="btn-primary" onclick="submitForm()">${editingId?'Update Entry':'Save Entry'}</button>
+    ${editingId?'<button class="btn" style="padding:14px 20px;font-size:14px" onclick="editingId=null;formSymptoms=[];switchView(\'log\')">Cancel</button>':''}
+  </div>`;
+}
+
+function renderHistory() {
+  if (!entries.length) return `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Illness History</h2>
+    <div class="card" style="text-align:center;padding:40px"><p style="color:var(--text-secondary)">No entries yet.</p></div>`;
+
+  const sorted = [...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart));
+  return `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Illness History</h2>
+    ${sorted.map(e => `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:17px;font-weight:700">${esc(e.diagnosis||'Undiagnosed Illness')}</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">
+            ${fmtDate(e.symptomStart)}${e.recoveryDate?` → ${fmtDate(e.recoveryDate)} (${daysBetween(e.symptomStart,e.recoveryDate)}d)`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-accent" onclick="editEntry('${e.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteEntry('${e.id}')">Delete</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+        ${(e.symptoms||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}
+      </div>
+      <div style="margin-top:12px" class="grid-auto">
+        <div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Severity:</strong> ${esc(e.severity)}${e.temperature?' · '+esc(e.temperature)+'°F':''}</div>
+        <div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Location:</strong> ${esc(e.location)}${e.locationDetail?' — '+esc(e.locationDetail):''}</div>
+        ${e.activity?`<div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Activity:</strong> ${esc(e.activity)}</div>`:''}
+      </div>
+      ${e.contacts&&e.contacts.length?`<div style="margin-top:8px;font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Contacts:</strong> ${esc(e.contacts.join(', '))}</div>`:''}
+      ${e.notes?`<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic">"${esc(e.notes)}"</div>`:''}
+    </div>`).join('')}`;
+}
+
+function renderAnalysis(a) {
+  if (!a || entries.length < 2) return `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Pattern Analysis</h2>
+    <div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <p style="color:var(--text-secondary)">Log at least 2 illness events to see patterns.</p>
+    </div>`;
+
+  const riskHTML = `<div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+      <span style="color:var(--warning)">⚠</span> Calculated Risk Factors</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">Based on ${a.total} logged illnesses</p>
+    ${a.risks.length ? a.risks.map(r => riskBarHTML(r.score,r.factor)+`<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 16px 4px">${esc(r.detail)}</div>`).join('')
+    : '<p style="color:var(--text-secondary);font-size:13px">No strong patterns yet. Keep logging.</p>'}
+  </div>`;
+
+  const freqHTML = `<div class="grid-2">
+    <div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Top Symptoms</h4>
+      ${a.topS.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent)')).join('')}
+    </div>
+    <div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Top Locations</h4>
+      ${a.topL.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent-warm)')).join('')}
+    </div>
+  </div>`;
+
+  const contactActivityHTML = `<div class="grid-2">
+    <div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Recurring Contacts</h4>
+      ${a.topC.length ? a.topC.map(([n,c])=>`<div class="entry-row" style="margin-bottom:6px;font-size:13px"><span style="text-transform:capitalize">${esc(n)}</span><span style="font-family:'JetBrains Mono';color:var(--danger)">${c}×</span></div>`).join('')
+      : '<p style="font-size:12px;color:var(--text-secondary)">No recurring contacts</p>'}
+    </div>
+    <div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Activity Patterns</h4>
+      ${a.topA.length ? a.topA.map(([n,c])=>`<div class="entry-row" style="margin-bottom:6px;font-size:13px"><span>${esc(n)}</span><span style="font-family:'JetBrains Mono';color:var(--success)">${c}×</span></div>`).join('')
+      : '<p style="font-size:12px;color:var(--text-secondary)">No patterns found</p>'}
+    </div>
+  </div>`;
+
+  const timingHTML = `<div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Timing Insights</h4>
+    <div class="grid-auto">
+      ${a.peakM?`<div class="timing-box"><div class="timing-value" style="color:var(--warning)">${esc(a.peakM[0])}</div><div class="timing-label">Peak month (${a.peakM[1]}×)</div></div>`:''}
+      ${a.peakD?`<div class="timing-box"><div class="timing-value" style="color:var(--accent)">${esc(a.peakD[0])}</div><div class="timing-label">Most common day (${a.peakD[1]}×)</div></div>`:''}
+      ${a.avgGap!==null?`<div class="timing-box"><div class="timing-value" style="color:var(--success)">${a.avgGap} days</div><div class="timing-label">Avg gap between illnesses</div></div>`:''}
+      ${a.avgDur!==null?`<div class="timing-box"><div class="timing-value" style="color:var(--accent-warm)">${a.avgDur} days</div><div class="timing-label">Avg illness duration</div></div>`:''}
+    </div>
+  </div>`;
+
+  return `<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Pattern Analysis</h2>
+    ${riskHTML}${freqHTML}${contactActivityHTML}${timingHTML}`;
+}
+
+// ─── Init ───
+loadLocal();
+initFirebase();
+render();
+</script>
+</body>
+</html>
