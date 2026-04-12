@@ -287,8 +287,53 @@ const COMMON_MEDS = [
   "Tylenol (Acetaminophen)","Advil/Motrin (Ibuprofen)","Aspirin","DayQuil","NyQuil",
   "Mucinex","Robitussin","Sudafed","Benadryl","Zyrtec","Claritin","Flonase",
   "Tamiflu","Amoxicillin","Azithromycin (Z-Pack)","Paxlovid","Pedialyte",
-  "Pepto-Bismol","Imodium","Tums","Throat Lozenges","Vitamin C","Zinc","Other"
+  "Pepto-Bismol","Imodium","Tums","Throat Lozenges","Vitamin C","Zinc"
 ];
+
+// Custom meds persist per-user
+let customMeds = [];
+function loadCustomMeds() {
+  try { const r = localStorage.getItem('illness_custom_meds'); if (r) customMeds = JSON.parse(r); } catch(e) {}
+}
+function saveCustomMeds() {
+  try { localStorage.setItem('illness_custom_meds', JSON.stringify(customMeds)); } catch(e) {}
+  // Also save to Firestore if signed in
+  if (firebaseReady && currentUser && db) {
+    try { db.collection('users').doc(currentUser.uid).set({ customMeds }, { merge: true }); } catch(e) {}
+  }
+}
+async function loadCustomMedsFromFirestore() {
+  if (!firebaseReady || !currentUser) return;
+  try {
+    const doc = await db.collection('users').doc(currentUser.uid).get();
+    if (doc.exists && doc.data().customMeds) {
+      const remote = doc.data().customMeds;
+      const merged = [...new Set([...customMeds, ...remote])];
+      customMeds = merged;
+      saveCustomMeds();
+    }
+  } catch(e) {}
+}
+function getAllMeds() {
+  // Combine built-in + custom, deduplicated, with "Other" always last
+  const all = [...COMMON_MEDS, ...customMeds.filter(m => !COMMON_MEDS.includes(m))];
+  all.sort((a, b) => a.localeCompare(b));
+  return [...all, 'Other'];
+}
+function addCustomMed(vitalId) {
+  const input = document.getElementById('custom-med-' + vitalId);
+  if (!input) return;
+  const name = input.value.trim();
+  if (!name) { showToast('⚠️ Enter a medicine name'); return; }
+  if (!customMeds.includes(name) && !COMMON_MEDS.includes(name)) {
+    customMeds.push(name);
+    saveCustomMeds();
+  }
+  updateVital(vitalId, 'medicine', name);
+  renderVitals();
+  showToast('✅ "' + name + '" added to your medicines');
+}
+loadCustomMeds();
 
 const genId = () => Math.random().toString(36).slice(2, 11);
 const daysBetween = (a, b) => Math.round(Math.abs(new Date(a) - new Date(b)) / 86400000);
@@ -380,13 +425,19 @@ async function loadFromFirestore() {
       saveLocal(); render();
       showToast('✅ Data synced from cloud');
     } else if (entries.length > 0) saveToFirestore();
+    // Sync custom meds
+    if (doc.exists && doc.data().customMeds) {
+      const remoteMeds = doc.data().customMeds;
+      customMeds = [...new Set([...customMeds, ...remoteMeds])];
+      saveCustomMeds();
+    }
   } catch(e) { console.error('Firestore load error:', e); }
 }
 async function saveToFirestore() {
   if (!firebaseReady || !currentUser) return;
   try {
     await db.collection('users').doc(currentUser.uid).set({
-      entries, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      entries, customMeds, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   } catch(e) { console.error('Firestore save error:', e); }
 }
@@ -542,12 +593,25 @@ function addVitalEntry() {
   renderVitals();
 }
 function removeVitalEntry(id) { formVitals = formVitals.filter(v => v.id !== id); renderVitals(); }
-function updateVital(id, field, value) { const v = formVitals.find(x => x.id === id); if (v) v[field] = value; }
+function updateVital(id, field, value) {
+  const v = formVitals.find(x => x.id === id);
+  if (v) {
+    v[field] = value;
+    // If user selected "Other", re-render to show custom input
+    if (field === 'medicine' && value === 'Other') {
+      v.medicine = 'Other';
+      renderVitals();
+    }
+  }
+}
 
 function renderVitals() {
   const c = document.getElementById('vitals-list'); if (!c) return;
-  const medOpts = COMMON_MEDS.map(m => '<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
-  c.innerHTML = formVitals.map((v, i) => `
+  const meds = getAllMeds();
+  const medOpts = meds.map(m => '<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+  c.innerHTML = formVitals.map((v, i) => {
+    const isOther = v.medicine === 'Other';
+    return `
     <div class="vitals-entry" data-vital-id="${v.id}">
       <div class="vitals-header">
         <span style="font-size:13px;font-weight:600;color:var(--accent-purple)">💊 Entry ${i+1}</span>
@@ -571,10 +635,31 @@ function renderVitals() {
         <div><label class="label" style="font-size:10px">Note</label>
           <input class="input" placeholder="Optional" value="${esc(v.notes)}" onchange="updateVital('${v.id}','notes',this.value)"></div>
       </div>
-    </div>`).join('');
+      ${isOther ? `
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1">
+          <label class="label" style="font-size:10px">Custom Medicine Name</label>
+          <input class="input" style="margin-bottom:0" id="custom-med-${v.id}" placeholder="Enter medicine name..."
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMed('${v.id}')}">
+        </div>
+        <button class="btn btn-sm btn-accent" style="height:38px;white-space:nowrap" onclick="addCustomMed('${v.id}')">+ Add</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
   // Restore select values
   formVitals.forEach(v => {
-    if (v.medicine) { const el = c.querySelector('[data-vital-id="'+v.id+'"] select'); if (el) el.value = v.medicine; }
+    if (v.medicine) {
+      const el = c.querySelector('[data-vital-id="'+v.id+'"] select');
+      if (el) {
+        // Check if the value exists in the options
+        const optExists = [...el.options].some(o => o.value === v.medicine);
+        if (optExists) el.value = v.medicine;
+        else if (v.medicine !== 'Other') {
+          // Medicine was custom but already saved — set to its value
+          el.value = v.medicine;
+        }
+      }
+    }
   });
 }
 
