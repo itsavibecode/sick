@@ -452,7 +452,7 @@ async function syncToGCal(entry) {
     let p = [];
     if (v.temperature) p.push('Temp: ' + v.temperature + '°F');
     if (v.spo2) p.push('SpO2: ' + v.spo2 + '%');
-    if (v.medicine) p.push('Med: ' + v.medicine + (v.dosage ? ' (' + v.dosage + ')' : ''));
+    if (v.medicine) p.push('Med: ' + v.medicine + (v.dosage ? ' (' + v.dosage + ')' : '') + (v.doseInterval ? ' every ' + v.doseInterval + 'h' : ''));
     return fmtDateTime(v.dateTime) + ': ' + p.join(', ');
   }).join('\n');
 
@@ -499,7 +499,7 @@ function createICSEvent(e) {
   const start = e.symptomStart.replace(/[-:]/g, '').split('T').join('T') + '00';
   const end = e.recoveryDate ? e.recoveryDate.replace(/-/g, '') + 'T235959' : start;
   const symp = (e.symptoms || []).join(', ');
-  const meds = (e.vitals||[]).filter(v=>v.medicine).map(v=>v.medicine+(v.dosage?' ('+v.dosage+')':'')).join(', ');
+  const meds = (e.vitals||[]).filter(v=>v.medicine).map(v=>v.medicine+(v.dosage?' ('+v.dosage+')':'')+(v.doseInterval?' every '+v.doseInterval+'h':'')).join(', ');
   return 'BEGIN:VEVENT\r\nDTSTART:'+start+'\r\nDTEND:'+end+'\r\nSUMMARY:🤒 '+(e.diagnosis||'Illness')+'\r\nDESCRIPTION:Symptoms: '+symp+(meds?'\\nMedicine: '+meds:'')+'\\nSeverity: '+e.severity+'\r\nLOCATION:'+(e.locationDetail||e.location)+'\r\nUID:'+e.id+'@illnesstracker\r\nEND:VEVENT';
 }
 function exportICS() {
@@ -589,10 +589,82 @@ function addContact() {
 }
 
 function addVitalEntry() {
-  formVitals.push({ id: genId(), dateTime: '', temperature: '', spo2: '', medicine: '', dosage: '', notes: '' });
+  formVitals.push({ id: genId(), dateTime: '', temperature: '', spo2: '', medicine: '', dosage: '', doseInterval: '', notes: '' });
   renderVitals();
 }
 function removeVitalEntry(id) { formVitals = formVitals.filter(v => v.id !== id); renderVitals(); }
+
+function calcNextDose(dateTime, intervalHours) {
+  if (!dateTime || !intervalHours) return null;
+  const taken = new Date(dateTime);
+  if (isNaN(taken)) return null;
+  const next = new Date(taken.getTime() + parseFloat(intervalHours) * 3600000);
+  return next;
+}
+
+function calcDoseTimerHTML(v) {
+  const next = calcNextDose(v.dateTime, v.doseInterval);
+  if (!next) return '';
+  const now = new Date();
+  const diff = next - now;
+  const isPast = diff <= 0;
+  const absDiff = Math.abs(diff);
+  const hrs = Math.floor(absDiff / 3600000);
+  const mins = Math.floor((absDiff % 3600000) / 60000);
+  const timeStr = next.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const dateStr = next.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const isToday = next.toDateString() === now.toDateString();
+  const isTomorrow = next.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+  const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : dateStr;
+
+  if (isPast) {
+    return '<div style="font-size:12px;padding:8px 12px;border-radius:8px;background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.2);display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:16px">⏰</span>'
+      + '<div><span style="color:var(--danger);font-weight:600">Next dose was due ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm ago</span>'
+      + '<span style="color:var(--text-secondary);margin-left:8px">(' + timeStr + ' ' + dayLabel + ')</span></div></div>';
+  } else {
+    const urgentSoon = diff < 3600000; // less than 1 hour
+    const bgColor = urgentSoon ? 'rgba(210,153,34,0.1)' : 'rgba(63,185,80,0.1)';
+    const borderColor = urgentSoon ? 'rgba(210,153,34,0.2)' : 'rgba(63,185,80,0.2)';
+    const textColor = urgentSoon ? 'var(--warning)' : 'var(--success)';
+    return '<div style="font-size:12px;padding:8px 12px;border-radius:8px;background:'+bgColor+';border:1px solid '+borderColor+';display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:16px">💊</span>'
+      + '<div><span style="color:'+textColor+';font-weight:600">Next dose in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm</span>'
+      + '<span style="color:var(--text-secondary);margin-left:8px">(' + timeStr + ' ' + dayLabel + ')</span></div></div>';
+  }
+}
+
+function renderDoseTimer(vitalId) {
+  const v = formVitals.find(x => x.id === vitalId);
+  const el = document.getElementById('dose-timer-' + vitalId);
+  if (v && el) el.innerHTML = calcDoseTimerHTML(v);
+}
+
+// Keep dose timers updated every 30s
+setInterval(() => {
+  formVitals.forEach(v => {
+    if (v.dateTime && v.doseInterval) renderDoseTimer(v.id);
+  });
+  // Also update history view dose timers if visible
+  if (currentView === 'history') {
+    document.querySelectorAll('[data-dose-next]').forEach(el => {
+      const next = new Date(el.dataset.doseNext);
+      const now = new Date();
+      const diff = next - now;
+      const isPast = diff <= 0;
+      const absDiff = Math.abs(diff);
+      const hrs = Math.floor(absDiff / 3600000);
+      const mins = Math.floor((absDiff % 3600000) / 60000);
+      if (isPast) {
+        el.textContent = '⏰ Due ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm ago';
+        el.style.color = 'var(--danger)';
+      } else {
+        el.textContent = '💊 Next in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
+        el.style.color = diff < 3600000 ? 'var(--warning)' : 'var(--success)';
+      }
+    });
+  }
+}, 30000);
 function updateVital(id, field, value) {
   const v = formVitals.find(x => x.id === id);
   if (v) {
@@ -632,9 +704,12 @@ function renderVitals() {
           </select></div>
         <div><label class="label" style="font-size:10px">Dosage</label>
           <input class="input" placeholder="e.g. 500mg" value="${esc(v.dosage)}" onchange="updateVital('${v.id}','dosage',this.value)"></div>
+        <div><label class="label" style="font-size:10px">Every (hours)</label>
+          <input class="input" type="number" min="1" max="72" step="0.5" placeholder="e.g. 4" value="${esc(v.doseInterval)}" onchange="updateVital('${v.id}','doseInterval',this.value);renderDoseTimer('${v.id}')"></div>
         <div><label class="label" style="font-size:10px">Note</label>
           <input class="input" placeholder="Optional" value="${esc(v.notes)}" onchange="updateVital('${v.id}','notes',this.value)"></div>
       </div>
+      <div id="dose-timer-${v.id}" style="margin-top:6px">${calcDoseTimerHTML(v)}</div>
       ${isOther ? `
       <div style="margin-top:8px;display:flex;gap:8px;align-items:flex-end">
         <div style="flex:1">
@@ -773,9 +848,32 @@ function renderVitalsInHistory(vitals) {
       let parts = [];
       if (v.temperature) parts.push('<span style="color:var(--accent-warm)">🌡 '+esc(v.temperature)+'°F</span>');
       if (v.spo2) parts.push('<span style="color:var(--accent)">💨 SpO2: '+esc(v.spo2)+'%</span>');
-      if (v.medicine) parts.push('<span class="chip-med">'+esc(v.medicine)+(v.dosage?' · '+esc(v.dosage):'')+'</span>');
+      if (v.medicine) parts.push('<span class="chip-med">'+esc(v.medicine)+(v.dosage?' · '+esc(v.dosage):'')+(v.doseInterval?' · every '+esc(v.doseInterval)+'h':'')+'</span>');
       if (v.notes) parts.push('<span style="color:var(--text-secondary);font-style:italic">'+esc(v.notes)+'</span>');
-      return '<div style="font-size:12px;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="color:var(--text-secondary);font-family:\'JetBrains Mono\';font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'+parts.join('')+'</div>';
+      // Next dose indicator
+      let doseHTML = '';
+      const next = calcNextDose(v.dateTime, v.doseInterval);
+      if (next) {
+        const now = new Date();
+        const diff = next - now;
+        const isPast = diff <= 0;
+        const absDiff = Math.abs(diff);
+        const hrs = Math.floor(absDiff / 3600000);
+        const mins = Math.floor((absDiff % 3600000) / 60000);
+        const timeStr = next.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const isToday = next.toDateString() === now.toDateString();
+        const isTomorrow = next.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+        const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : next.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (isPast) {
+          doseHTML = '<span data-dose-next="'+next.toISOString()+'" style="font-size:11px;color:var(--danger);font-weight:600">⏰ Due '+(hrs>0?hrs+'h ':'')+mins+'m ago</span>'
+            + '<span style="font-size:11px;color:var(--text-secondary);margin-left:4px">('+timeStr+' '+dayLabel+')</span>';
+        } else {
+          const clr = diff < 3600000 ? 'var(--warning)' : 'var(--success)';
+          doseHTML = '<span data-dose-next="'+next.toISOString()+'" style="font-size:11px;color:'+clr+';font-weight:600">💊 Next in '+(hrs>0?hrs+'h ':'')+mins+'m</span>'
+            + '<span style="font-size:11px;color:var(--text-secondary);margin-left:4px">('+timeStr+' '+dayLabel+')</span>';
+        }
+      }
+      return '<div style="font-size:12px;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="color:var(--text-secondary);font-family:\'JetBrains Mono\';font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'+parts.join('')+(doseHTML?'<span style="margin-left:auto">'+doseHTML+'</span>':'')+'</div>';
     }).join('')+'</div>';
 }
 
