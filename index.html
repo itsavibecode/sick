@@ -228,7 +228,7 @@ body {
     <div class="logo">🩺</div>
     <div>
       <h1>Illness Tracker</h1>
-      <div class="sub">Track · Analyze · Prevent</div>
+      <div class="sub">Track · Analyze · Prevent <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500" id="app-version"></span></div>
     </div>
   </div>
   <div class="header-actions">
@@ -259,6 +259,9 @@ body {
 <div id="toast" class="toast hidden"></div>
 
 <script>
+// ─── Version ───
+const APP_VERSION = 'v0.35';
+
 // ─── State ───
 let entries = [];
 let currentView = 'dashboard';
@@ -504,9 +507,9 @@ function createICSEvent(e) {
 }
 function exportICS() {
   const cal = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//IllnessTracker//EN\r\nCALSCALE:GREGORIAN\r\n'+entries.map(createICSEvent).join('\r\n')+'\r\nEND:VCALENDAR';
-  dl(new Blob([cal],{type:'text/calendar'}), 'illness-log.ics');
+  dl(new Blob([cal],{type:'text/calendar'}), 'illness-log-'+APP_VERSION+'.ics');
 }
-function exportJSON() { dl(new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}), 'illness-data.json'); }
+function exportJSON() { dl(new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}), 'illness-data-'+APP_VERSION+'.json'); }
 function dl(blob, name) { const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = name; a.click(); URL.revokeObjectURL(u); }
 function importJSON(evt) {
   const f = evt.target.files[0]; if (!f) return;
@@ -642,27 +645,16 @@ function renderDoseTimer(vitalId) {
 
 // Keep dose timers updated every 30s
 setInterval(() => {
+  // Update form dose timers
   formVitals.forEach(v => {
     if (v.dateTime && v.doseInterval) renderDoseTimer(v.id);
   });
-  // Also update history view dose timers if visible
-  if (currentView === 'history') {
-    document.querySelectorAll('[data-dose-next]').forEach(el => {
-      const next = new Date(el.dataset.doseNext);
-      const now = new Date();
-      const diff = next - now;
-      const isPast = diff <= 0;
-      const absDiff = Math.abs(diff);
-      const hrs = Math.floor(absDiff / 3600000);
-      const mins = Math.floor((absDiff % 3600000) / 60000);
-      if (isPast) {
-        el.textContent = '⏰ Due ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm ago';
-        el.style.color = 'var(--danger)';
-      } else {
-        el.textContent = '💊 Next in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
-        el.style.color = diff < 3600000 ? 'var(--warning)' : 'var(--success)';
-      }
-    });
+  // Re-render dashboard or history to keep dose countdowns live
+  if (currentView === 'dashboard') {
+    const a = analyze();
+    document.getElementById('view-dashboard').innerHTML = renderDashboard(a);
+  } else if (currentView === 'history') {
+    document.getElementById('view-history').innerHTML = renderHistory();
   }
 }, 30000);
 function updateVital(id, field, value) {
@@ -810,6 +802,78 @@ function freqBarHTML(name, count, total, color) {
   return '<div class="freq-row"><div class="freq-header"><span style="color:var(--text-secondary)">'+esc(name)+'</span><span style="font-family:\'JetBrains Mono\';color:'+color+'">'+count+'</span></div><div class="freq-track"><div class="freq-fill" style="width:'+(count/total*100)+'%;background:'+color+'"></div></div></div>';
 }
 
+function getUpcomingDoses() {
+  const now = new Date();
+  const doses = [];
+  entries.forEach(e => {
+    (e.vitals || []).forEach(v => {
+      if (!v.medicine || !v.dateTime || !v.doseInterval) return;
+      const next = calcNextDose(v.dateTime, v.doseInterval);
+      if (!next) return;
+      const diff = next - now;
+      // Show doses that are upcoming within 24h or overdue within 24h
+      if (diff > 24 * 3600000 || diff < -24 * 3600000) return;
+      doses.push({
+        medicine: v.medicine,
+        dosage: v.dosage,
+        interval: v.doseInterval,
+        nextDose: next,
+        diff: diff,
+        isPast: diff <= 0,
+        diagnosis: e.diagnosis || 'Illness'
+      });
+    });
+  });
+  // Sort: overdue first, then soonest upcoming
+  doses.sort((a, b) => {
+    if (a.isPast && !b.isPast) return -1;
+    if (!a.isPast && b.isPast) return 1;
+    return a.nextDose - b.nextDose;
+  });
+  return doses;
+}
+
+function renderUpcomingDosesCard() {
+  const doses = getUpcomingDoses();
+  if (!doses.length) return '';
+  return '<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="color:var(--accent-purple)">💊</span> Upcoming Doses</h3>'
+    + doses.map(d => {
+      const now = new Date();
+      const absDiff = Math.abs(d.diff);
+      const hrs = Math.floor(absDiff / 3600000);
+      const mins = Math.floor((absDiff % 3600000) / 60000);
+      const timeStr = d.nextDose.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const isToday = d.nextDose.toDateString() === now.toDateString();
+      const isTomorrow = d.nextDose.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+      const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : d.nextDose.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const urgentSoon = !d.isPast && d.diff < 3600000;
+
+      let bgColor, borderColor, statusIcon, statusText, statusColor;
+      if (d.isPast) {
+        bgColor = 'rgba(248,81,73,0.08)'; borderColor = 'rgba(248,81,73,0.2)';
+        statusIcon = '⏰'; statusText = 'Overdue by ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
+        statusColor = 'var(--danger)';
+      } else if (urgentSoon) {
+        bgColor = 'rgba(210,153,34,0.08)'; borderColor = 'rgba(210,153,34,0.2)';
+        statusIcon = '⚠'; statusText = 'Due in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
+        statusColor = 'var(--warning)';
+      } else {
+        bgColor = 'rgba(63,185,80,0.08)'; borderColor = 'rgba(63,185,80,0.2)';
+        statusIcon = '💊'; statusText = 'Due in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
+        statusColor = 'var(--success)';
+      }
+      return '<div data-dose-next="' + d.nextDose.toISOString() + '" style="padding:12px;border-radius:10px;background:' + bgColor + ';border:1px solid ' + borderColor + ';margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+        + '<div>'
+        + '<div style="font-weight:600;font-size:14px;color:var(--accent-purple)">' + esc(d.medicine) + (d.dosage ? ' <span style="font-weight:400;color:var(--text-secondary)">· ' + esc(d.dosage) + '</span>' : '') + '</div>'
+        + '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Every ' + esc(d.interval) + 'h · for ' + esc(d.diagnosis) + '</div>'
+        + '</div>'
+        + '<div style="text-align:right">'
+        + '<div style="font-size:13px;font-weight:600;color:' + statusColor + '">' + statusIcon + ' ' + statusText + '</div>'
+        + '<div style="font-size:11px;color:var(--text-secondary)">' + timeStr + ' ' + dayLabel + '</div>'
+        + '</div></div>';
+    }).join('') + '</div>';
+}
+
 function renderDashboard(a) {
   const stats = '<div class="stats-grid">'+[
     {l:'Total Illnesses',v:entries.length,c:'var(--accent)'},
@@ -820,13 +884,16 @@ function renderDashboard(a) {
 
   if (!entries.length) return stats+'<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🏥</div><h2 style="font-size:20px;font-weight:600;margin-bottom:8px">No illnesses logged yet</h2><p style="color:var(--text-secondary);margin-bottom:20px">Start tracking to uncover patterns.</p><button class="btn-primary" style="max-width:280px;margin:0 auto" onclick="switchView(\'log\')">Log Your First Illness</button></div>';
 
+  // Upcoming doses card — shown first if there are any
+  const dosesHTML = renderUpcomingDosesCard();
+
   let riskHTML = '';
   if (a && a.risks.length) {
     riskHTML = '<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="color:var(--warning)">⚠</span> Top Risk Factors</h3>'+a.risks.map(r => riskBarHTML(r.score,r.factor)+'<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 12px 4px">'+esc(r.detail)+'</div>').join('')+'</div>';
   }
   const recent = [...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart)).slice(0,3);
   const recentHTML = '<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px">Recent Illnesses</h3>'+recent.map(e => '<div class="entry-row"><div><div style="font-weight:600;font-size:14px">'+esc(e.diagnosis||'Undiagnosed')+'</div><div style="font-size:12px;color:var(--text-secondary)">'+fmtDate(e.symptomStart)+' · '+esc(e.severity)+' · '+esc(e.location)+'</div></div><div style="display:flex;gap:4px;flex-wrap:wrap">'+(e.symptoms||[]).slice(0,3).map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+((e.symptoms||[]).length>3?'<span style="font-size:11px;color:var(--text-secondary);padding:3px 6px">+'+(e.symptoms.length-3)+'</span>':'')+'</div></div>').join('')+'</div>';
-  return stats + riskHTML + recentHTML;
+  return stats + dosesHTML + riskHTML + recentHTML;
 }
 
 function renderLogForm() {
@@ -850,8 +917,8 @@ function renderVitalsInHistory(vitals) {
       if (v.spo2) parts.push('<span style="color:var(--accent)">💨 SpO2: '+esc(v.spo2)+'%</span>');
       if (v.medicine) parts.push('<span class="chip-med">'+esc(v.medicine)+(v.dosage?' · '+esc(v.dosage):'')+(v.doseInterval?' · every '+esc(v.doseInterval)+'h':'')+'</span>');
       if (v.notes) parts.push('<span style="color:var(--text-secondary);font-style:italic">'+esc(v.notes)+'</span>');
-      // Next dose indicator
-      let doseHTML = '';
+      // Next dose line
+      let doseLine = '';
       const next = calcNextDose(v.dateTime, v.doseInterval);
       if (next) {
         const now = new Date();
@@ -864,16 +931,31 @@ function renderVitalsInHistory(vitals) {
         const isToday = next.toDateString() === now.toDateString();
         const isTomorrow = next.toDateString() === new Date(now.getTime() + 86400000).toDateString();
         const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : next.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const urgentSoon = !isPast && diff < 3600000;
+        let bgColor, borderColor, icon, text, textColor;
         if (isPast) {
-          doseHTML = '<span data-dose-next="'+next.toISOString()+'" style="font-size:11px;color:var(--danger);font-weight:600">⏰ Due '+(hrs>0?hrs+'h ':'')+mins+'m ago</span>'
-            + '<span style="font-size:11px;color:var(--text-secondary);margin-left:4px">('+timeStr+' '+dayLabel+')</span>';
+          bgColor = 'rgba(248,81,73,0.08)'; borderColor = 'rgba(248,81,73,0.15)';
+          icon = '⏰'; text = 'Overdue by '+(hrs>0?hrs+'h ':'')+mins+'m'; textColor = 'var(--danger)';
+        } else if (urgentSoon) {
+          bgColor = 'rgba(210,153,34,0.08)'; borderColor = 'rgba(210,153,34,0.15)';
+          icon = '⚠'; text = 'Next dose in '+(hrs>0?hrs+'h ':'')+mins+'m'; textColor = 'var(--warning)';
         } else {
-          const clr = diff < 3600000 ? 'var(--warning)' : 'var(--success)';
-          doseHTML = '<span data-dose-next="'+next.toISOString()+'" style="font-size:11px;color:'+clr+';font-weight:600">💊 Next in '+(hrs>0?hrs+'h ':'')+mins+'m</span>'
-            + '<span style="font-size:11px;color:var(--text-secondary);margin-left:4px">('+timeStr+' '+dayLabel+')</span>';
+          bgColor = 'rgba(63,185,80,0.08)'; borderColor = 'rgba(63,185,80,0.15)';
+          icon = '💊'; text = 'Next dose in '+(hrs>0?hrs+'h ':'')+mins+'m'; textColor = 'var(--success)';
         }
+        doseLine = '<div data-dose-next="'+next.toISOString()+'" style="margin-top:4px;padding:6px 10px;border-radius:8px;background:'+bgColor+';border:1px solid '+borderColor+';font-size:12px;display:inline-flex;align-items:center;gap:6px">'
+          + '<span>'+icon+'</span>'
+          + '<span style="font-weight:600;color:'+textColor+'">'+text+'</span>'
+          + '<span style="color:var(--text-secondary)">· '+timeStr+' '+dayLabel+'</span>'
+          + '</div>';
       }
-      return '<div style="font-size:12px;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="color:var(--text-secondary);font-family:\'JetBrains Mono\';font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'+parts.join('')+(doseHTML?'<span style="margin-left:auto">'+doseHTML+'</span>':'')+'</div>';
+      return '<div style="margin-bottom:10px">'
+        + '<div style="font-size:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px">'
+        + '<span style="color:var(--text-secondary);font-family:\'JetBrains Mono\';font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'
+        + parts.join('')
+        + '</div>'
+        + doseLine
+        + '</div>';
     }).join('')+'</div>';
 }
 
@@ -919,6 +1001,8 @@ function renderAnalysis(a) {
 }
 
 // ─── Init ───
+document.getElementById('app-version').textContent = APP_VERSION;
+document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
 loadLocal();
 initFirebase();
 render();
