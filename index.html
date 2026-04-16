@@ -4,235 +4,88 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Illness Tracker — Track · Analyze · Prevent</title>
-<!-- SVG Favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2358a6ff'/%3E%3Cstop offset='100%25' stop-color='%23a371f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='36'%3E🩺%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2358a6ff'/%3E%3Cstop offset='100%25' stop-color='%23a371f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='36'%3E🩺%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- html2canvas for PNG export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-:root {
-  --bg-primary: #0d1117;
-  --bg-card: #161b22;
-  --bg-tertiary: #21262d;
-  --bg-input: #0d1117;
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --accent: #58a6ff;
-  --accent-warm: #f78166;
-  --accent-purple: #a371f7;
-  --border: #30363d;
-  --danger: #f85149;
-  --success: #3fb950;
-  --warning: #d29922;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
-}
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-.header {
-  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
-}
-.header-left { display: flex; align-items: center; gap: 12px; }
-.logo {
-  width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(135deg, #58a6ff, #a371f7);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
-}
-.header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-.header .sub { font-size: 12px; color: var(--text-secondary); }
-.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-.nav {
-  display: flex; border-bottom: 1px solid var(--border);
-  background: var(--bg-card); overflow-x: auto;
-}
-.nav button {
-  flex: 1; padding: 14px 8px; border: none; background: transparent;
-  color: var(--text-secondary); font-size: 13px; cursor: pointer;
-  border-bottom: 2px solid transparent; font-family: inherit;
-  transition: all 0.2s; min-width: 80px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-}
-.nav button.active { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
-.nav button .nav-icon { font-size: 18px; }
-.content { padding: 20px; max-width: 800px; margin: 0 auto; }
-
-.card {
-  background: var(--bg-card); border-radius: 16px; padding: 24px;
-  border: 1px solid var(--border); margin-bottom: 12px;
-}
-.btn {
-  padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border);
-  background: var(--bg-tertiary); color: var(--text-primary);
-  font-size: 13px; cursor: pointer; font-family: inherit;
-  display: inline-flex; align-items: center; gap: 6px;
-  transition: opacity 0.2s;
-}
-.btn:disabled { opacity: 0.4; cursor: default; }
-.btn-outline { background: transparent; border-color: var(--accent); color: var(--accent); }
-.btn-primary {
-  background: linear-gradient(135deg, #58a6ff, #a371f7);
-  border: none; color: #fff; font-weight: 700; font-size: 16px;
-  padding: 14px 28px; border-radius: 12px; width: 100%; cursor: pointer;
-  font-family: inherit;
-}
-.btn-google {
-  background: #fff; color: #333; border: 1px solid #ddd;
-  padding: 10px 20px; border-radius: 10px; font-weight: 600;
-  font-size: 14px; display: inline-flex; align-items: center; gap: 10px;
-  cursor: pointer; font-family: inherit;
-}
-.btn-sm { padding: 6px 14px; border-radius: 8px; font-size: 12px; }
-.btn-danger { color: var(--danger); }
-.btn-accent { color: var(--accent); }
-.btn-gcal {
-  background: transparent; border: 1px solid #4285F4; color: #4285F4;
-  padding: 8px 16px; border-radius: 10px; font-size: 13px;
-  cursor: pointer; font-family: inherit;
-  display: inline-flex; align-items: center; gap: 6px;
-}
-
-.label {
-  display: block; font-size: 12px; font-weight: 600;
-  color: var(--text-secondary); margin-bottom: 6px;
-  text-transform: uppercase; letter-spacing: 0.05em;
-}
-.input, .select, .textarea {
-  width: 100%; padding: 10px 14px; border-radius: 10px;
-  border: 1px solid var(--border); background: var(--bg-input);
-  color: var(--text-primary); font-size: 14px; font-family: inherit;
-  outline: none; margin-bottom: 16px;
-}
-.select { appearance: none; }
-.textarea { resize: vertical; }
-.section-title { margin: 0 0 14px; font-size: 15px; font-weight: 600; color: var(--accent); }
-
-.tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-.tag {
-  padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
-  background: transparent; color: var(--text-secondary);
-  font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: inherit;
-}
-.tag.active { border-color: var(--accent); background: var(--accent); color: #fff; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
-.stat-card { text-align: center; padding: 16px; }
-.stat-value { font-size: 28px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-
-.risk-bar-track { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
-.risk-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
-
-.chip { padding: 4px 12px; border-radius: 12px; font-size: 12px; background: rgba(88,166,255,0.12); color: var(--accent); display: inline-block; }
-.chip-med { padding: 4px 12px; border-radius: 12px; font-size: 12px; background: rgba(163,113,247,0.12); color: var(--accent-purple); display: inline-block; }
-
-.entry-row {
-  padding: 14px; border-radius: 12px; background: var(--bg-tertiary);
-  margin-bottom: 8px; display: flex; justify-content: space-between;
-  align-items: center; flex-wrap: wrap; gap: 8px;
-}
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
-
-.contact-row { display: flex; gap: 8px; margin-bottom: 8px; }
-.contact-row input { flex: 1; }
-
-.vitals-entry {
-  padding: 12px; border-radius: 10px; background: var(--bg-primary);
-  border: 1px solid var(--border); margin-bottom: 8px;
-}
-.vitals-entry .vitals-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
-}
-.vitals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-.vitals-grid .input, .vitals-grid .select { margin-bottom: 0; font-size: 13px; padding: 8px 10px; }
-
-.auth-banner {
-  padding: 12px 20px; background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 8px; font-size: 13px;
-}
-.auth-banner .user-info { display: flex; align-items: center; gap: 10px; }
-.auth-banner .user-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent); }
-
-.timing-box { text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 12px; }
-.timing-value { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.timing-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-
-.freq-row { margin-bottom: 8px; }
-.freq-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
-.freq-track { height: 4px; background: var(--bg-tertiary); border-radius: 2px; }
-.freq-fill { height: 100%; border-radius: 2px; }
-
-.toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  padding: 12px 24px; border-radius: 12px; background: var(--bg-card);
-  border: 1px solid var(--border); color: var(--text-primary);
-  font-size: 14px; font-weight: 500; z-index: 100;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-.hidden { display: none !important; }
-
-@media (max-width: 600px) {
-  .grid-2 { grid-template-columns: 1fr; }
-  .header { padding: 12px 16px; }
-  .content { padding: 14px; }
-  .header-actions { width: 100%; }
-  .header-actions .btn, .header-actions .btn-gcal { flex: 1; justify-content: center; font-size: 12px; padding: 8px 10px; }
-}
+:root{--bg-primary:#0d1117;--bg-card:#161b22;--bg-tertiary:#21262d;--bg-input:#0d1117;--text-primary:#e6edf3;--text-secondary:#8b949e;--accent:#58a6ff;--accent-warm:#f78166;--accent-purple:#a371f7;--border:#30363d;--danger:#f85149;--success:#3fb950;--warning:#d29922;
+--temp-normal:#3fb950;--temp-low-grade:#d29922;--temp-fever:#f78166;--temp-high-fever:#f85149}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.header{background:linear-gradient(135deg,#161b22,#0d1117);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#58a6ff,#a371f7);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.header h1{font-size:20px;font-weight:700;letter-spacing:-0.02em}.header .sub{font-size:12px;color:var(--text-secondary)}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg-card);overflow-x:auto}
+.nav button{flex:1;padding:14px 8px;border:none;background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;transition:all .2s;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.nav button.active{color:var(--accent);font-weight:600;border-bottom-color:var(--accent)}.nav button .nav-icon{font-size:18px}
+.content{padding:20px;max-width:800px;margin:0 auto}
+.card{background:var(--bg-card);border-radius:16px;padding:24px;border:1px solid var(--border);margin-bottom:12px}
+.btn{padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s}
+.btn:disabled{opacity:.4;cursor:default}.btn-outline{background:transparent;border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:linear-gradient(135deg,#58a6ff,#a371f7);border:none;color:#fff;font-weight:700;font-size:16px;padding:14px 28px;border-radius:12px;width:100%;cursor:pointer;font-family:inherit}
+.btn-google{background:#fff;color:#333;border:1px solid #ddd;padding:10px 20px;border-radius:10px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-family:inherit}
+.btn-sm{padding:6px 14px;border-radius:8px;font-size:12px}.btn-danger{color:var(--danger)}.btn-accent{color:var(--accent)}
+.btn-gcal{background:transparent;border:1px solid #4285F4;color:#4285F4;padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.input,.select,.textarea{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;margin-bottom:16px}
+.select{appearance:none}.textarea{resize:vertical}
+.section-title{margin:0 0 14px;font-size:15px;font-weight:600;color:var(--accent)}
+.tag-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tag{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.tag.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{text-align:center;padding:16px}.stat-value{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}.stat-label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+.risk-bar-track{height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden}.risk-bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.chip{padding:4px 12px;border-radius:12px;font-size:12px;background:rgba(88,166,255,.12);color:var(--accent);display:inline-block}
+.chip-med{padding:4px 12px;border-radius:12px;font-size:12px;background:rgba(163,113,247,.12);color:var(--accent-purple);display:inline-block}
+.entry-row{padding:14px;border-radius:12px;background:var(--bg-tertiary);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.entry-row.clickable{cursor:pointer;transition:border-color .2s;border:1px solid transparent}.entry-row.clickable:hover{border-color:var(--accent)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.contact-row{display:flex;gap:8px;margin-bottom:8px}.contact-row input{flex:1}
+.vitals-entry{padding:12px;border-radius:10px;background:var(--bg-primary);border:1px solid var(--border);margin-bottom:8px}
+.vitals-entry .vitals-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.vitals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.vitals-grid .input,.vitals-grid .select{margin-bottom:0;font-size:13px;padding:8px 10px}
+.auth-banner{padding:12px 20px;background:var(--bg-tertiary);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px}
+.auth-banner .user-info{display:flex;align-items:center;gap:10px}.auth-banner .user-avatar{width:28px;height:28px;border-radius:50%;border:2px solid var(--accent)}
+.timing-box{text-align:center;padding:16px;background:var(--bg-tertiary);border-radius:12px}
+.timing-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}.timing-label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+.freq-row{margin-bottom:8px}.freq-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.freq-track{height:4px;background:var(--bg-tertiary);border-radius:2px}.freq-fill{height:100%;border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);font-size:14px;font-weight:500;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.hidden{display:none !important}
+/* PNG export card (rendered off-screen) */
+.png-card{position:absolute;left:-9999px;top:0;width:600px;background:#161b22;color:#e6edf3;font-family:'DM Sans','Segoe UI',sans-serif;padding:28px;border-radius:16px;border:2px solid #30363d}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr}.header{padding:12px 16px}.content{padding:14px}.header-actions{width:100%}.header-actions .btn,.header-actions .btn-gcal{flex:1;justify-content:center;font-size:12px;padding:8px 10px}}
 </style>
 </head>
 <body>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<!-- Auth Banner -->
 <div id="auth-banner" class="auth-banner">
-  <div id="auth-signed-out">
-    <span style="color:var(--text-secondary)">Sign in to sync data &amp; Google Calendar</span>
-  </div>
-  <div id="auth-signed-in" class="user-info hidden">
-    <img id="user-avatar" class="user-avatar" src="" alt="">
-    <span id="user-name" style="font-weight:600"></span>
-  </div>
+  <div id="auth-signed-out"><span style="color:var(--text-secondary)">Sign in to sync data &amp; Google Calendar</span></div>
+  <div id="auth-signed-in" class="user-info hidden"><img id="user-avatar" class="user-avatar" src="" alt=""><span id="user-name" style="font-weight:600"></span></div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <button id="btn-signin" class="btn-google" onclick="signIn()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 000 24c0 3.77.87 7.34 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Sign in with Google
-    </button>
-    <button id="btn-signout" class="btn btn-sm hidden" onclick="signOut()" style="margin-left:4px">Sign Out</button>
+    <button id="btn-signin" class="btn-google" onclick="signIn()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 000 24c0 3.77.87 7.34 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Sign in with Google</button>
+    <button id="btn-signout" class="btn btn-sm hidden" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
-<!-- Header -->
 <div class="header">
   <div class="header-left">
     <div class="logo">🩺</div>
-    <div>
-      <h1>Illness Tracker</h1>
-      <div class="sub">Track · Analyze · Prevent <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500" id="app-version"></span></div>
-    </div>
+    <div><h1>Illness Tracker</h1><div class="sub">Track · Analyze · Prevent <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500" id="app-version"></span></div></div>
   </div>
   <div class="header-actions">
-    <button class="btn-gcal" onclick="syncAllToGCal()" id="btn-gcal" disabled>📅 Sync to Google Cal</button>
+    <button class="btn-gcal" onclick="syncAllToGCal()" id="btn-gcal" disabled>📅 Google Cal</button>
     <button class="btn" onclick="exportICS()" id="btn-export-ics" disabled>📅 .ics</button>
     <button class="btn" onclick="exportJSON()" id="btn-export-json" disabled>💾 JSON</button>
     <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">📂 Import</button>
@@ -240,7 +93,6 @@ body {
   </div>
 </div>
 
-<!-- Nav -->
 <div class="nav" id="nav">
   <button class="active" data-view="dashboard" onclick="switchView('dashboard')"><span class="nav-icon">◉</span> Dashboard</button>
   <button data-view="log" onclick="switchView('log')"><span class="nav-icon">✚</span> Log Illness</button>
@@ -248,21 +100,25 @@ body {
   <button data-view="analysis" onclick="switchView('analysis')"><span class="nav-icon">◈</span> Analysis</button>
 </div>
 
-<!-- Views -->
 <div class="content">
   <div id="view-dashboard"></div>
   <div id="view-log" class="hidden"></div>
   <div id="view-history" class="hidden"></div>
   <div id="view-analysis" class="hidden"></div>
 </div>
-
+<!-- Off-screen container for PNG rendering -->
+<div id="png-render-area"></div>
 <div id="toast" class="toast hidden"></div>
 
 <script>
-// ─── Version ───
-const APP_VERSION = 'v0.35';
+// ═══════════════════════════════════════════════
+// VERSION
+// ═══════════════════════════════════════════════
+const APP_VERSION = 'v0.36';
 
-// ─── State ───
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
 let entries = [];
 let currentView = 'dashboard';
 let editingId = null;
@@ -271,72 +127,28 @@ let currentUser = null;
 let db = null;
 let gcalAccessToken = null;
 
-// Dismissed overdue dose alerts — keyed by "entryId:vitalId" or "entryId:vitalIndex"
+// Dismissed overdue dose alerts — keyed by "entryId:vitalId"
 let dismissedDoses = new Set();
-function loadDismissed() {
-  try { const r = localStorage.getItem('illness_dismissed_doses'); if (r) dismissedDoses = new Set(JSON.parse(r)); } catch(e) {}
-}
+function loadDismissed() { try { const r = localStorage.getItem('illness_dismissed_doses'); if (r) dismissedDoses = new Set(JSON.parse(r)); } catch(e) {} }
 function saveDismissed() {
   try { localStorage.setItem('illness_dismissed_doses', JSON.stringify([...dismissedDoses])); } catch(e) {}
-}
-function dismissDose(key) {
-  dismissedDoses.add(key);
-  saveDismissed();
-  render();
-}
-function getDoseKey(entryId, vitalId) {
-  return entryId + ':' + vitalId;
-}
-loadDismissed();
-
-const SYMPTOMS = [
-  "Fever","Chills","Cough","Sore Throat","Runny Nose","Congestion",
-  "Sneezing","Headache","Body Aches","Fatigue","Nausea","Vomiting",
-  "Diarrhea","Loss of Taste/Smell","Shortness of Breath","Dizziness",
-  "Ear Pain","Eye Irritation","Rash","Swollen Glands"
-];
-const SEVERITY = ["Mild","Moderate","Severe"];
-const LOCATIONS = [
-  "Home","Office/Work","School","Gym","Restaurant","Public Transit",
-  "Grocery Store","Hospital/Clinic","Airport/Travel","Social Gathering","Outdoors","Other"
-];
-const ACTIVITIES = [
-  "Working","Exercising","Traveling","Socializing","Cooking/Eating Out",
-  "Shopping","Commuting","Childcare","Attending Event","Other"
-];
-const COMMON_MEDS = [
-  "Tylenol (Acetaminophen)","Advil/Motrin (Ibuprofen)","Aspirin","DayQuil","NyQuil",
-  "Mucinex","Robitussin","Sudafed","Benadryl","Zyrtec","Claritin","Flonase",
-  "Tamiflu","Amoxicillin","Azithromycin (Z-Pack)","Paxlovid","Pedialyte",
-  "Pepto-Bismol","Imodium","Tums","Throat Lozenges","Vitamin C","Zinc"
-];
-
-// Custom meds persist per-user
-let customMeds = [];
-function loadCustomMeds() {
-  try { const r = localStorage.getItem('illness_custom_meds'); if (r) customMeds = JSON.parse(r); } catch(e) {}
-}
-function saveCustomMeds() {
-  try { localStorage.setItem('illness_custom_meds', JSON.stringify(customMeds)); } catch(e) {}
-  // Also save to Firestore if signed in
+  // Sync to Firestore
   if (firebaseReady && currentUser && db) {
-    try { db.collection('users').doc(currentUser.uid).set({ customMeds }, { merge: true }); } catch(e) {}
+    try { db.collection('users').doc(currentUser.uid).set({ dismissedDoses: [...dismissedDoses] }, { merge: true }); } catch(e) {}
   }
 }
-async function loadCustomMedsFromFirestore() {
-  if (!firebaseReady || !currentUser) return;
-  try {
-    const doc = await db.collection('users').doc(currentUser.uid).get();
-    if (doc.exists && doc.data().customMeds) {
-      const remote = doc.data().customMeds;
-      const merged = [...new Set([...customMeds, ...remote])];
-      customMeds = merged;
-      saveCustomMeds();
-    }
-  } catch(e) {}
+function dismissDose(key) { dismissedDoses.add(key); saveDismissed(); render(); }
+function getDoseKey(entryId, vitalId) { return entryId + ':' + vitalId; }
+loadDismissed();
+
+// Custom meds
+let customMeds = [];
+function loadCustomMeds() { try { const r = localStorage.getItem('illness_custom_meds'); if (r) customMeds = JSON.parse(r); } catch(e) {} }
+function saveCustomMeds() {
+  try { localStorage.setItem('illness_custom_meds', JSON.stringify(customMeds)); } catch(e) {}
+  if (firebaseReady && currentUser && db) { try { db.collection('users').doc(currentUser.uid).set({ customMeds }, { merge: true }); } catch(e) {} }
 }
 function getAllMeds() {
-  // Combine built-in + custom, deduplicated, with "Other" always last
   const all = [...COMMON_MEDS, ...customMeds.filter(m => !COMMON_MEDS.includes(m))];
   all.sort((a, b) => a.localeCompare(b));
   return [...all, 'Other'];
@@ -346,21 +158,45 @@ function addCustomMed(vitalId) {
   if (!input) return;
   const name = input.value.trim();
   if (!name) { showToast('⚠️ Enter a medicine name'); return; }
-  if (!customMeds.includes(name) && !COMMON_MEDS.includes(name)) {
-    customMeds.push(name);
-    saveCustomMeds();
-  }
+  if (!customMeds.includes(name) && !COMMON_MEDS.includes(name)) { customMeds.push(name); saveCustomMeds(); }
   updateVital(vitalId, 'medicine', name);
   renderVitals();
   showToast('✅ "' + name + '" added to your medicines');
 }
 loadCustomMeds();
 
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const SYMPTOMS = ["Fever","Chills","Cough","Sore Throat","Runny Nose","Congestion","Sneezing","Headache","Body Aches","Fatigue","Nausea","Vomiting","Diarrhea","Loss of Taste/Smell","Shortness of Breath","Dizziness","Ear Pain","Eye Irritation","Rash","Swollen Glands"];
+const SEVERITY = ["Mild","Moderate","Severe"];
+const LOCATIONS = ["Home","Office/Work","School","Gym","Restaurant","Public Transit","Grocery Store","Hospital/Clinic","Airport/Travel","Social Gathering","Outdoors","Other"];
+const ACTIVITIES = ["Working","Exercising","Traveling","Socializing","Cooking/Eating Out","Shopping","Commuting","Childcare","Attending Event","Other"];
+const COMMON_MEDS = ["Tylenol (Acetaminophen)","Advil/Motrin (Ibuprofen)","Aspirin","DayQuil","NyQuil","Mucinex","Robitussin","Sudafed","Benadryl","Zyrtec","Claritin","Flonase","Tamiflu","Amoxicillin","Azithromycin (Z-Pack)","Paxlovid","Pedialyte","Pepto-Bismol","Imodium","Tums","Throat Lozenges","Vitamin C","Zinc"];
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
 const genId = () => Math.random().toString(36).slice(2, 11);
 const daysBetween = (a, b) => Math.round(Math.abs(new Date(a) - new Date(b)) / 86400000);
 const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : '—';
 const esc = (s) => { if (typeof s !== 'string') return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+// Temperature color coding (°F)
+function tempColor(f) {
+  const n = parseFloat(f);
+  if (isNaN(n)) return 'var(--text-secondary)';
+  if (n < 97.0) return 'var(--accent)';         // below normal — cool blue
+  if (n < 99.5) return 'var(--temp-normal)';     // normal — green
+  if (n < 100.4) return 'var(--temp-low-grade)'; // low-grade — yellow
+  if (n < 103.0) return 'var(--temp-fever)';     // fever — orange
+  return 'var(--temp-high-fever)';               // high fever — red
+}
+function tempHTML(f) {
+  if (!f) return '';
+  return '<span style="color:'+tempColor(f)+';font-weight:600">'+esc(f)+'°F</span>';
+}
 
 function showToast(msg) {
   const el = document.getElementById('toast');
@@ -374,83 +210,110 @@ function updateExportButtons() {
   document.getElementById('btn-gcal').disabled = !has || !gcalAccessToken;
 }
 
-// ─── Firebase ───
+// ═══════════════════════════════════════════════
+// DOSE TIMER HELPERS
+// ═══════════════════════════════════════════════
+function calcNextDose(dateTime, intervalHours) {
+  if (!dateTime || !intervalHours) return null;
+  const taken = new Date(dateTime);
+  if (isNaN(taken)) return null;
+  return new Date(taken.getTime() + parseFloat(intervalHours) * 3600000);
+}
+function calcDoseTimerHTML(v) {
+  const next = calcNextDose(v.dateTime, v.doseInterval);
+  if (!next) return '';
+  const now = new Date(), diff = next - now, isPast = diff <= 0, absDiff = Math.abs(diff);
+  const hrs = Math.floor(absDiff / 3600000), mins = Math.floor((absDiff % 3600000) / 60000);
+  const timeStr = next.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+  const isToday = next.toDateString() === now.toDateString();
+  const isTomorrow = next.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+  const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : next.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const timeText = (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
+  if (isPast) {
+    return '<div style="font-size:12px;padding:8px 12px;border-radius:8px;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.2);display:flex;align-items:center;gap:8px"><span style="font-size:16px">⏰</span><div><span style="color:var(--danger);font-weight:600">Next dose was due '+timeText+' ago</span><span style="color:var(--text-secondary);margin-left:8px">('+timeStr+' '+dayLabel+')</span></div></div>';
+  }
+  const urgent = diff < 3600000;
+  const bg = urgent ? 'rgba(210,153,34,.1)' : 'rgba(63,185,80,.1)';
+  const bd = urgent ? 'rgba(210,153,34,.2)' : 'rgba(63,185,80,.2)';
+  const cl = urgent ? 'var(--warning)' : 'var(--success)';
+  return '<div style="font-size:12px;padding:8px 12px;border-radius:8px;background:'+bg+';border:1px solid '+bd+';display:flex;align-items:center;gap:8px"><span style="font-size:16px">💊</span><div><span style="color:'+cl+';font-weight:600">Next dose in '+timeText+'</span><span style="color:var(--text-secondary);margin-left:8px">('+timeStr+' '+dayLabel+')</span></div></div>';
+}
+function renderDoseTimer(vitalId) {
+  const v = formVitals.find(x => x.id === vitalId);
+  const el = document.getElementById('dose-timer-' + vitalId);
+  if (v && el) el.innerHTML = calcDoseTimerHTML(v);
+}
+// Auto-refresh timers
+setInterval(() => {
+  formVitals.forEach(v => { if (v.dateTime && v.doseInterval) renderDoseTimer(v.id); });
+  if (currentView === 'dashboard' || currentView === 'history') {
+    const a = analyze();
+    if (currentView === 'dashboard') document.getElementById('view-dashboard').innerHTML = renderDashboard(a);
+    else document.getElementById('view-history').innerHTML = renderHistory();
+  }
+}, 30000);
+
+// ═══════════════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════════════
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCR7AHHq8nIu_k7usHiItQCJIu_6Lo-p6A",
-  authDomain: "illnesstracker-8d888.firebaseapp.com",
-  projectId: "illnesstracker-8d888",
-  storageBucket: "illnesstracker-8d888.firebasestorage.app",
-  messagingSenderId: "660525580864",
-  appId: "1:660525580864:web:ba78d04b13147a2b34d5a5",
-  measurementId: "G-RNQ6FDPBH4"
+  apiKey:"AIzaSyCR7AHHq8nIu_k7usHiItQCJIu_6Lo-p6A",authDomain:"illnesstracker-8d888.firebaseapp.com",
+  projectId:"illnesstracker-8d888",storageBucket:"illnesstracker-8d888.firebasestorage.app",
+  messagingSenderId:"660525580864",appId:"1:660525580864:web:ba78d04b13147a2b34d5a5",measurementId:"G-RNQ6FDPBH4"
 };
 const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 
 function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.firestore();
-    firebaseReady = true;
-    firebase.auth().onAuthStateChanged(user => {
-      currentUser = user;
-      updateAuthUI();
-      if (user) loadFromFirestore();
-    });
+    db = firebase.firestore(); firebaseReady = true;
+    firebase.auth().onAuthStateChanged(user => { currentUser = user; updateAuthUI(); if (user) loadFromFirestore(); });
   } catch(e) { console.warn('Firebase init failed:', e); }
 }
 function updateAuthUI() {
-  const so = document.getElementById('auth-signed-out');
-  const si = document.getElementById('auth-signed-in');
-  const bi = document.getElementById('btn-signin');
-  const bo = document.getElementById('btn-signout');
-  if (currentUser) {
-    so.classList.add('hidden'); si.classList.remove('hidden');
-    bi.classList.add('hidden'); bo.classList.remove('hidden');
-    document.getElementById('user-avatar').src = currentUser.photoURL || '';
-    document.getElementById('user-name').textContent = currentUser.displayName || currentUser.email;
-  } else {
-    so.classList.remove('hidden'); si.classList.add('hidden');
-    bi.classList.remove('hidden'); bo.classList.add('hidden');
-    gcalAccessToken = null;
-  }
+  const cu = currentUser;
+  document.getElementById('auth-signed-out').classList.toggle('hidden', !!cu);
+  document.getElementById('auth-signed-in').classList.toggle('hidden', !cu);
+  document.getElementById('btn-signin').classList.toggle('hidden', !!cu);
+  document.getElementById('btn-signout').classList.toggle('hidden', !cu);
+  if (cu) { document.getElementById('user-avatar').src = cu.photoURL||''; document.getElementById('user-name').textContent = cu.displayName||cu.email; }
+  else gcalAccessToken = null;
   updateExportButtons();
 }
 function signIn() {
   if (!firebaseReady) { showToast('⚠️ Firebase not ready'); return; }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope(GCAL_SCOPES);
-  firebase.auth().signInWithPopup(provider).then(result => {
-    if (result.credential) {
-      gcalAccessToken = result.credential.accessToken;
-      updateExportButtons();
-      showToast('✅ Signed in — Calendar sync enabled');
-    }
+  const p = new firebase.auth.GoogleAuthProvider();
+  p.addScope(GCAL_SCOPES);
+  firebase.auth().signInWithPopup(p).then(r => {
+    if (r.credential) { gcalAccessToken = r.credential.accessToken; updateExportButtons(); showToast('✅ Signed in — Calendar sync enabled'); }
   }).catch(e => showToast('⚠️ Sign-in failed: ' + e.message));
 }
-function signOut() {
-  if (!firebaseReady) return;
-  firebase.auth().signOut();
-  gcalAccessToken = null; updateExportButtons();
-  showToast('Signed out');
-}
+function signOut() { if (!firebaseReady) return; firebase.auth().signOut(); gcalAccessToken = null; updateExportButtons(); showToast('Signed out'); }
+
 async function loadFromFirestore() {
   if (!firebaseReady || !currentUser) return;
   try {
     const doc = await db.collection('users').doc(currentUser.uid).get();
-    if (doc.exists && doc.data().entries) {
-      const remote = doc.data().entries;
-      const remoteIds = new Set(remote.map(e => e.id));
-      const localOnly = entries.filter(e => !remoteIds.has(e.id));
-      entries = [...remote, ...localOnly];
-      if (localOnly.length > 0) saveToFirestore();
-      saveLocal(); render();
-      showToast('✅ Data synced from cloud');
-    } else if (entries.length > 0) saveToFirestore();
-    // Sync custom meds
-    if (doc.exists && doc.data().customMeds) {
-      const remoteMeds = doc.data().customMeds;
-      customMeds = [...new Set([...customMeds, ...remoteMeds])];
-      saveCustomMeds();
+    if (doc.exists) {
+      const d = doc.data();
+      if (d.entries) {
+        const remote = d.entries, remoteIds = new Set(remote.map(e => e.id));
+        const localOnly = entries.filter(e => !remoteIds.has(e.id));
+        entries = [...remote, ...localOnly];
+        if (localOnly.length > 0) saveToFirestore();
+        saveLocal(); render();
+        showToast('✅ Data synced from cloud');
+      } else if (entries.length > 0) saveToFirestore();
+      // Sync custom meds
+      if (d.customMeds) { customMeds = [...new Set([...customMeds, ...d.customMeds])]; saveCustomMeds(); }
+      // Sync dismissed doses
+      if (d.dismissedDoses) {
+        const remoteDismissed = new Set(d.dismissedDoses);
+        const merged = new Set([...dismissedDoses, ...remoteDismissed]);
+        dismissedDoses = merged;
+        saveDismissed();
+        render();
+      }
     }
   } catch(e) { console.error('Firestore load error:', e); }
 }
@@ -458,470 +321,296 @@ async function saveToFirestore() {
   if (!firebaseReady || !currentUser) return;
   try {
     await db.collection('users').doc(currentUser.uid).set({
-      entries, customMeds, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      entries, customMeds, dismissedDoses: [...dismissedDoses],
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   } catch(e) { console.error('Firestore save error:', e); }
 }
 
-// ─── Google Calendar Sync ───
+// ═══════════════════════════════════════════════
+// GOOGLE CALENDAR SYNC
+// ═══════════════════════════════════════════════
 async function syncToGCal(entry) {
-  if (!gcalAccessToken) { showToast('⚠️ Sign in first to sync'); return; }
-  const startDT = entry.symptomStart.includes('T') ? entry.symptomStart : entry.symptomStart + 'T08:00:00';
-  const endDT = entry.recoveryDate ? entry.recoveryDate + 'T23:59:00' : startDT;
-  const symptoms = (entry.symptoms || []).join(', ');
-  const vitalsLog = (entry.vitals || []).map(v => {
+  if (!gcalAccessToken) { showToast('⚠️ Sign in first'); return; }
+  const startDT = entry.symptomStart.includes('T') ? entry.symptomStart : entry.symptomStart+'T08:00:00';
+  const endDT = entry.recoveryDate ? entry.recoveryDate+'T23:59:00' : startDT;
+  const vitalsLog = (entry.vitals||[]).map(v => {
     let p = [];
-    if (v.temperature) p.push('Temp: ' + v.temperature + '°F');
-    if (v.spo2) p.push('SpO2: ' + v.spo2 + '%');
-    if (v.medicine) p.push('Med: ' + v.medicine + (v.dosage ? ' (' + v.dosage + ')' : '') + (v.doseInterval ? ' every ' + v.doseInterval + 'h' : ''));
-    return fmtDateTime(v.dateTime) + ': ' + p.join(', ');
+    if (v.temperature) p.push('Temp: '+v.temperature+'°F');
+    if (v.spo2) p.push('SpO2: '+v.spo2+'%');
+    if (v.medicine) p.push('Med: '+v.medicine+(v.dosage?' ('+v.dosage+')':'')+(v.doseInterval?' every '+v.doseInterval+'h':''));
+    return fmtDateTime(v.dateTime)+': '+p.join(', ');
   }).join('\n');
-
   const body = {
-    summary: '🤒 ' + (entry.diagnosis || 'Illness'),
-    description: 'Symptoms: ' + symptoms + '\nSeverity: ' + entry.severity
-      + (entry.temperature ? '\nTemp: ' + entry.temperature + '°F' : '')
-      + '\nLocation: ' + (entry.location || '') + (entry.locationDetail ? ' — ' + entry.locationDetail : '')
-      + (entry.notes ? '\nNotes: ' + entry.notes : '')
-      + (vitalsLog ? '\n\nVitals/Medicine Log:\n' + vitalsLog : ''),
-    location: entry.locationDetail || entry.location || '',
-    start: { dateTime: new Date(startDT).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-    end: { dateTime: new Date(endDT).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+    summary:'🤒 '+(entry.diagnosis||'Illness'),
+    description:'Symptoms: '+(entry.symptoms||[]).join(', ')+'\nSeverity: '+entry.severity+(entry.temperature?'\nTemp: '+entry.temperature+'°F':'')+'\nLocation: '+(entry.location||'')+(entry.locationDetail?' — '+entry.locationDetail:'')+(entry.notes?'\nNotes: '+entry.notes:'')+(vitalsLog?'\n\nVitals/Medicine Log:\n'+vitalsLog:''),
+    location:entry.locationDetail||entry.location||'',
+    start:{dateTime:new Date(startDT).toISOString(),timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone},
+    end:{dateTime:new Date(endDT).toISOString(),timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone}
   };
   try {
-    const resp = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + gcalAccessToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{'Authorization':'Bearer '+gcalAccessToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if (r.ok) showToast('✅ Synced to Google Calendar');
+    else if (r.status===401){gcalAccessToken=null;updateExportButtons();showToast('⚠️ Session expired — sign in again');}
+    else{const e=await r.json();showToast('⚠️ '+(e.error?.message||r.status));}
+  } catch(e){showToast('⚠️ Sync failed: '+e.message);}
+}
+async function syncAllToGCal(){if(!gcalAccessToken){showToast('⚠️ Sign in first');return;}showToast('⏳ Syncing...');let ok=0;for(const e of entries){try{await syncToGCal(e);ok++;}catch{}await new Promise(r=>setTimeout(r,300));}showToast('✅ Synced '+ok+' events');}
+
+// ═══════════════════════════════════════════════
+// LOCAL STORAGE & EXPORT/IMPORT
+// ═══════════════════════════════════════════════
+function saveLocal(){try{localStorage.setItem('illness_entries',JSON.stringify(entries));}catch(e){}}
+function loadLocal(){try{const r=localStorage.getItem('illness_entries');if(r)entries=JSON.parse(r);}catch(e){}}
+function persist(){saveLocal();saveToFirestore();updateExportButtons();}
+
+function createICSEvent(e){
+  const start=e.symptomStart.replace(/[-:]/g,'').split('T').join('T')+'00';
+  const end=e.recoveryDate?e.recoveryDate.replace(/-/g,'')+'T235959':start;
+  const meds=(e.vitals||[]).filter(v=>v.medicine).map(v=>v.medicine+(v.dosage?' ('+v.dosage+')':'')+(v.doseInterval?' every '+v.doseInterval+'h':'')).join(', ');
+  return 'BEGIN:VEVENT\r\nDTSTART:'+start+'\r\nDTEND:'+end+'\r\nSUMMARY:🤒 '+(e.diagnosis||'Illness')+'\r\nDESCRIPTION:Symptoms: '+(e.symptoms||[]).join(', ')+(meds?'\\nMedicine: '+meds:'')+'\\nSeverity: '+e.severity+'\r\nLOCATION:'+(e.locationDetail||e.location)+'\r\nUID:'+e.id+'@illnesstracker\r\nEND:VEVENT';
+}
+function exportICS(){dl(new Blob(['BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//IllnessTracker//EN\r\nCALSCALE:GREGORIAN\r\n'+entries.map(createICSEvent).join('\r\n')+'\r\nEND:VCALENDAR'],{type:'text/calendar'}),'illness-log-'+APP_VERSION+'.ics');}
+function exportJSON(){dl(new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}),'illness-data-'+APP_VERSION+'.json');}
+function dl(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+function importJSON(evt){
+  const f=evt.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=(e)=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){entries=[...d.filter(x=>!new Set(entries.map(e=>e.id)).has(x.id)),...entries];persist();render();showToast('✅ Imported');}}catch{showToast('⚠️ Invalid JSON');}};
+  r.readAsText(f);evt.target.value='';
+}
+
+// ═══════════════════════════════════════════════
+// PNG EXPORT PER ILLNESS
+// ═══════════════════════════════════════════════
+async function exportPNG(entryId) {
+  const e = entries.find(x => x.id === entryId);
+  if (!e) return;
+  showToast('⏳ Generating PNG...');
+  const area = document.getElementById('png-render-area');
+  const vitalsRows = (e.vitals||[]).map(v => {
+    let parts = [];
+    if (v.temperature) parts.push('🌡 '+tempHTML(v.temperature));
+    if (v.spo2) parts.push('💨 SpO2: '+v.spo2+'%');
+    if (v.medicine) parts.push('<span class="chip-med">'+esc(v.medicine)+(v.dosage?' · '+esc(v.dosage):'')+(v.doseInterval?' · every '+esc(v.doseInterval)+'h':'')+'</span>');
+    return '<div style="font-size:13px;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="color:#8b949e;font-family:JetBrains Mono,monospace;font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'+parts.join('')+'</div>';
+  }).join('');
+  area.innerHTML = '<div class="png-card" id="png-target">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#58a6ff,#a371f7);display:flex;align-items:center;justify-content:center;font-size:16px">🩺</div><div><div style="font-size:18px;font-weight:700">'+esc(e.diagnosis||'Undiagnosed Illness')+'</div><div style="font-size:12px;color:#8b949e">'+fmtDate(e.symptomStart)+(e.recoveryDate?' → '+fmtDate(e.recoveryDate)+' ('+daysBetween(e.symptomStart,e.recoveryDate)+'d)':'')+'</div></div></div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+(e.symptoms||[]).map(s=>'<span style="padding:4px 12px;border-radius:12px;font-size:12px;background:rgba(88,166,255,.12);color:#58a6ff">'+esc(s)+'</span>').join('')+'</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:12px">'
+    + '<div><span style="color:#8b949e">Severity:</span> '+esc(e.severity)+(e.temperature?' · '+tempHTML(e.temperature):'')+'</div>'
+    + '<div><span style="color:#8b949e">Location:</span> '+esc(e.location)+(e.locationDetail?' — '+esc(e.locationDetail):'')+'</div>'
+    + (e.activity?'<div><span style="color:#8b949e">Activity:</span> '+esc(e.activity)+'</div>':'')
+    + (e.contacts&&e.contacts.length?'<div><span style="color:#8b949e">Contacts:</span> '+esc(e.contacts.join(', '))+'</div>':'')
+    + '</div>'
+    + (e.notes?'<div style="font-size:12px;color:#8b949e;font-style:italic;margin-bottom:12px">"'+esc(e.notes)+'"</div>':'')
+    + (vitalsRows?'<div style="border-top:1px solid #30363d;padding-top:10px;margin-top:4px"><div style="font-size:12px;font-weight:600;color:#a371f7;margin-bottom:8px">💊 Medicine & Vitals</div>'+vitalsRows+'</div>':'')
+    + '<div style="margin-top:12px;font-size:10px;color:#484f58;text-align:right">Illness Tracker '+APP_VERSION+'</div>'
+    + '</div>';
+  await new Promise(r => setTimeout(r, 100));
+  try {
+    const canvas = await html2canvas(document.getElementById('png-target'), { backgroundColor: '#161b22', scale: 2 });
+    canvas.toBlob(blob => {
+      const name = (e.diagnosis||'illness').replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();
+      dl(blob, name+'-'+fmtDate(e.symptomStart).replace(/[^a-zA-Z0-9]/g,'-')+'-'+APP_VERSION+'.png');
+      area.innerHTML = '';
+      showToast('✅ PNG saved');
     });
-    if (resp.ok) showToast('✅ Synced to Google Calendar');
-    else if (resp.status === 401) { gcalAccessToken = null; updateExportButtons(); showToast('⚠️ Session expired — sign in again'); }
-    else { const err = await resp.json(); showToast('⚠️ ' + (err.error?.message || resp.status)); }
-  } catch(e) { showToast('⚠️ Sync failed: ' + e.message); }
-}
-async function syncAllToGCal() {
-  if (!gcalAccessToken) { showToast('⚠️ Sign in first'); return; }
-  showToast('⏳ Syncing all entries...');
-  let ok = 0;
-  for (const e of entries) {
-    try { await syncToGCal(e); ok++; } catch {}
-    await new Promise(r => setTimeout(r, 300));
-  }
-  showToast('✅ Synced ' + ok + ' events');
+  } catch(err) { showToast('⚠️ PNG export failed'); area.innerHTML = ''; }
 }
 
-// ─── Local Storage ───
-function saveLocal() { try { localStorage.setItem('illness_entries', JSON.stringify(entries)); } catch(e) {} }
-function loadLocal() { try { const r = localStorage.getItem('illness_entries'); if (r) entries = JSON.parse(r); } catch(e) {} }
-function persist() { saveLocal(); saveToFirestore(); updateExportButtons(); }
-
-// ─── Export/Import ───
-function createICSEvent(e) {
-  const start = e.symptomStart.replace(/[-:]/g, '').split('T').join('T') + '00';
-  const end = e.recoveryDate ? e.recoveryDate.replace(/-/g, '') + 'T235959' : start;
-  const symp = (e.symptoms || []).join(', ');
-  const meds = (e.vitals||[]).filter(v=>v.medicine).map(v=>v.medicine+(v.dosage?' ('+v.dosage+')':'')+(v.doseInterval?' every '+v.doseInterval+'h':'')).join(', ');
-  return 'BEGIN:VEVENT\r\nDTSTART:'+start+'\r\nDTEND:'+end+'\r\nSUMMARY:🤒 '+(e.diagnosis||'Illness')+'\r\nDESCRIPTION:Symptoms: '+symp+(meds?'\\nMedicine: '+meds:'')+'\\nSeverity: '+e.severity+'\r\nLOCATION:'+(e.locationDetail||e.location)+'\r\nUID:'+e.id+'@illnesstracker\r\nEND:VEVENT';
-}
-function exportICS() {
-  const cal = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//IllnessTracker//EN\r\nCALSCALE:GREGORIAN\r\n'+entries.map(createICSEvent).join('\r\n')+'\r\nEND:VCALENDAR';
-  dl(new Blob([cal],{type:'text/calendar'}), 'illness-log-'+APP_VERSION+'.ics');
-}
-function exportJSON() { dl(new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}), 'illness-data-'+APP_VERSION+'.json'); }
-function dl(blob, name) { const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = name; a.click(); URL.revokeObjectURL(u); }
-function importJSON(evt) {
-  const f = evt.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (Array.isArray(data)) {
-        const ids = new Set(entries.map(x => x.id));
-        entries = [...data.filter(d => !ids.has(d.id)), ...entries];
-        persist(); render();
-        showToast('✅ Imported');
-      }
-    } catch { showToast('⚠️ Invalid JSON'); }
-  };
-  r.readAsText(f); evt.target.value = '';
-}
-
-// ─── Analysis ───
-function analyze() {
-  if (entries.length < 1) return null;
-  const sf={}, lf={}, cf={}, af={}, mf={}, df={}, medf={}, gaps=[];
-  const sorted = [...entries].sort((a,b) => new Date(a.symptomStart)-new Date(b.symptomStart));
-  sorted.forEach((e,i) => {
-    (e.symptoms||[]).forEach(s => sf[s]=(sf[s]||0)+1);
-    if(e.location) lf[e.location]=(lf[e.location]||0)+1;
-    if(e.activity) af[e.activity]=(af[e.activity]||0)+1;
-    const mo = new Date(e.symptomStart).toLocaleString('en-US',{month:'long'});
-    mf[mo]=(mf[mo]||0)+1;
-    const dow = new Date(e.symptomStart).toLocaleString('en-US',{weekday:'long'});
-    df[dow]=(df[dow]||0)+1;
-    (e.contacts||[]).forEach(c => { const n=c.toLowerCase().trim(); if(n) cf[n]=(cf[n]||0)+1; });
-    (e.vitals||[]).forEach(v => { if(v.medicine) medf[v.medicine]=(medf[v.medicine]||0)+1; });
-    if(i>0) gaps.push(daysBetween(e.symptomStart, sorted[i-1].symptomStart));
+// ═══════════════════════════════════════════════
+// ANALYSIS ENGINE
+// ═══════════════════════════════════════════════
+function analyze(){
+  if(entries.length<1)return null;
+  const sf={},lf={},cf={},af={},mf={},df={},medf={},gaps=[];
+  const sorted=[...entries].sort((a,b)=>new Date(a.symptomStart)-new Date(b.symptomStart));
+  sorted.forEach((e,i)=>{
+    (e.symptoms||[]).forEach(s=>sf[s]=(sf[s]||0)+1);
+    if(e.location)lf[e.location]=(lf[e.location]||0)+1;
+    if(e.activity)af[e.activity]=(af[e.activity]||0)+1;
+    const mo=new Date(e.symptomStart).toLocaleString('en-US',{month:'long'});mf[mo]=(mf[mo]||0)+1;
+    const dow=new Date(e.symptomStart).toLocaleString('en-US',{weekday:'long'});df[dow]=(df[dow]||0)+1;
+    (e.contacts||[]).forEach(c=>{const n=c.toLowerCase().trim();if(n)cf[n]=(cf[n]||0)+1;});
+    (e.vitals||[]).forEach(v=>{if(v.medicine)medf[v.medicine]=(medf[v.medicine]||0)+1;});
+    if(i>0)gaps.push(daysBetween(e.symptomStart,sorted[i-1].symptomStart));
   });
-  const top = (o,n) => Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n);
-  const topS=top(sf,5), topL=top(lf,3), topC=top(cf,3), topA=top(af,3), topMed=top(medf,5);
-  const peakM=top(mf,1)[0], peakD=top(df,1)[0];
-  const avgGap = gaps.length ? Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length) : null;
-  const withRec = sorted.filter(e=>e.recoveryDate);
-  const avgDur = withRec.length ? Math.round(withRec.reduce((s,e)=>s+daysBetween(e.symptomStart,e.recoveryDate),0)/withRec.length) : null;
-  const risks = [];
-  const n = entries.length;
-  if(topL.length && topL[0][1]>=2) risks.push({factor:'Recurring location: '+topL[0][0],score:Math.min(topL[0][1]/n,1),detail:topL[0][1]+' of '+n+' illnesses at "'+topL[0][0]+'"'});
-  if(topC.length && topC[0][1]>=2) risks.push({factor:'Recurring contact: '+topC[0][0],score:Math.min(topC[0][1]/n,1),detail:'"'+topC[0][0]+'" near you during '+topC[0][1]+' events'});
-  if(peakM && peakM[1]>=2) risks.push({factor:'Seasonal: '+peakM[0],score:Math.min(peakM[1]/n,1),detail:peakM[1]+' illnesses in '+peakM[0]});
-  if(topA.length && topA[0][1]>=2) risks.push({factor:'Activity: '+topA[0][0],score:Math.min(topA[0][1]/n,1),detail:'"'+topA[0][0]+'" before '+topA[0][1]+' events'});
-  if(avgGap!==null && avgGap<30) risks.push({factor:'Frequent illness cycle',score:Math.min(1,30/(avgGap||1)*0.3),detail:'Avg gap only '+avgGap+' days'});
+  const top=(o,n)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  const topS=top(sf,5),topL=top(lf,3),topC=top(cf,3),topA=top(af,3),topMed=top(medf,5);
+  const peakM=top(mf,1)[0],peakD=top(df,1)[0];
+  const avgGap=gaps.length?Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length):null;
+  const withRec=sorted.filter(e=>e.recoveryDate);
+  const avgDur=withRec.length?Math.round(withRec.reduce((s,e)=>s+daysBetween(e.symptomStart,e.recoveryDate),0)/withRec.length):null;
+  const risks=[],n=entries.length;
+  if(topL.length&&topL[0][1]>=2)risks.push({factor:'Recurring location: '+topL[0][0],score:Math.min(topL[0][1]/n,1),detail:topL[0][1]+' of '+n+' illnesses at "'+topL[0][0]+'"'});
+  if(topC.length&&topC[0][1]>=2)risks.push({factor:'Recurring contact: '+topC[0][0],score:Math.min(topC[0][1]/n,1),detail:'"'+topC[0][0]+'" near you during '+topC[0][1]+' events'});
+  if(peakM&&peakM[1]>=2)risks.push({factor:'Seasonal: '+peakM[0],score:Math.min(peakM[1]/n,1),detail:peakM[1]+' illnesses in '+peakM[0]});
+  if(topA.length&&topA[0][1]>=2)risks.push({factor:'Activity: '+topA[0][0],score:Math.min(topA[0][1]/n,1),detail:'"'+topA[0][0]+'" before '+topA[0][1]+' events'});
+  if(avgGap!==null&&avgGap<30)risks.push({factor:'Frequent illness cycle',score:Math.min(1,30/(avgGap||1)*.3),detail:'Avg gap only '+avgGap+' days'});
   risks.sort((a,b)=>b.score-a.score);
-  return {total:n, topS, topL, topC, topA, topMed, peakM, peakD, avgGap, avgDur, risks};
+  return{total:n,topS,topL,topC,topA,topMed,peakM,peakD,avgGap,avgDur,risks};
 }
 
-// ─── Views ───
-function switchView(v) {
-  currentView = v;
-  ['dashboard','log','history','analysis'].forEach(id => document.getElementById('view-'+id).classList.toggle('hidden', id!==v));
-  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.view===v));
-  if (v !== 'log') editingId = null;
+// ═══════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════
+function switchView(v){
+  currentView=v;
+  ['dashboard','log','history','analysis'].forEach(id=>document.getElementById('view-'+id).classList.toggle('hidden',id!==v));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  if(v!=='log')editingId=null;
   render();
 }
-
-// ─── Form ───
-let formSymptoms = [];
-let formVitals = [];
-
-function toggleSymptom(s) {
-  const i = formSymptoms.indexOf(s);
-  if (i>=0) formSymptoms.splice(i,1); else formSymptoms.push(s);
-  renderSymptomTags();
-}
-function renderSymptomTags() {
-  const c = document.getElementById('symptom-tags'); if (!c) return;
-  c.innerHTML = SYMPTOMS.map(s => '<button class="tag '+(formSymptoms.includes(s)?'active':'')+'" onclick="toggleSymptom(\''+s.replace(/'/g,"\\'")+'\')">'+esc(s)+'</button>').join('');
-}
-function addContact() {
-  const c = document.getElementById('contacts-list');
-  const row = document.createElement('div'); row.className = 'contact-row';
-  row.innerHTML = '<input class="input" style="margin-bottom:0" placeholder="Contact '+(c.children.length+1)+'" data-contact><button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>';
-  c.appendChild(row);
+// Navigate to history and scroll to a specific entry
+function goToEntry(entryId){
+  switchView('history');
+  setTimeout(()=>{const el=document.getElementById('entry-'+entryId);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.boxShadow='0 0 0 2px var(--accent)';setTimeout(()=>el.style.boxShadow='',2000);}},50);
 }
 
-function addVitalEntry() {
-  formVitals.push({ id: genId(), dateTime: '', temperature: '', spo2: '', medicine: '', dosage: '', doseInterval: '', notes: '' });
-  renderVitals();
+// ═══════════════════════════════════════════════
+// FORM
+// ═══════════════════════════════════════════════
+let formSymptoms=[];
+let formVitals=[];
+
+function toggleSymptom(s){const i=formSymptoms.indexOf(s);if(i>=0)formSymptoms.splice(i,1);else formSymptoms.push(s);renderSymptomTags();}
+function renderSymptomTags(){const c=document.getElementById('symptom-tags');if(!c)return;c.innerHTML=SYMPTOMS.map(s=>'<button class="tag '+(formSymptoms.includes(s)?'active':'')+'" onclick="toggleSymptom(\''+s.replace(/'/g,"\\'")+'\')">'+esc(s)+'</button>').join('');}
+function addContact(){const c=document.getElementById('contacts-list');const row=document.createElement('div');row.className='contact-row';row.innerHTML='<input class="input" style="margin-bottom:0" placeholder="Contact '+(c.children.length+1)+'" data-contact><button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>';c.appendChild(row);}
+
+function addVitalEntry(){formVitals.push({id:genId(),dateTime:'',temperature:'',spo2:'',medicine:'',dosage:'',doseInterval:'',notes:''});renderVitals();}
+function removeVitalEntry(id){formVitals=formVitals.filter(v=>v.id!==id);renderVitals();}
+function updateVital(id,field,value){
+  const v=formVitals.find(x=>x.id===id);
+  if(v){v[field]=value;if(field==='medicine'&&value==='Other'){v.medicine='Other';renderVitals();}}
 }
-function removeVitalEntry(id) { formVitals = formVitals.filter(v => v.id !== id); renderVitals(); }
-
-function calcNextDose(dateTime, intervalHours) {
-  if (!dateTime || !intervalHours) return null;
-  const taken = new Date(dateTime);
-  if (isNaN(taken)) return null;
-  const next = new Date(taken.getTime() + parseFloat(intervalHours) * 3600000);
-  return next;
-}
-
-function calcDoseTimerHTML(v) {
-  const next = calcNextDose(v.dateTime, v.doseInterval);
-  if (!next) return '';
-  const now = new Date();
-  const diff = next - now;
-  const isPast = diff <= 0;
-  const absDiff = Math.abs(diff);
-  const hrs = Math.floor(absDiff / 3600000);
-  const mins = Math.floor((absDiff % 3600000) / 60000);
-  const timeStr = next.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const dateStr = next.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const isToday = next.toDateString() === now.toDateString();
-  const isTomorrow = next.toDateString() === new Date(now.getTime() + 86400000).toDateString();
-  const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : dateStr;
-
-  if (isPast) {
-    return '<div style="font-size:12px;padding:8px 12px;border-radius:8px;background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.2);display:flex;align-items:center;gap:8px">'
-      + '<span style="font-size:16px">⏰</span>'
-      + '<div><span style="color:var(--danger);font-weight:600">Next dose was due ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm ago</span>'
-      + '<span style="color:var(--text-secondary);margin-left:8px">(' + timeStr + ' ' + dayLabel + ')</span></div></div>';
-  } else {
-    const urgentSoon = diff < 3600000; // less than 1 hour
-    const bgColor = urgentSoon ? 'rgba(210,153,34,0.1)' : 'rgba(63,185,80,0.1)';
-    const borderColor = urgentSoon ? 'rgba(210,153,34,0.2)' : 'rgba(63,185,80,0.2)';
-    const textColor = urgentSoon ? 'var(--warning)' : 'var(--success)';
-    return '<div style="font-size:12px;padding:8px 12px;border-radius:8px;background:'+bgColor+';border:1px solid '+borderColor+';display:flex;align-items:center;gap:8px">'
-      + '<span style="font-size:16px">💊</span>'
-      + '<div><span style="color:'+textColor+';font-weight:600">Next dose in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm</span>'
-      + '<span style="color:var(--text-secondary);margin-left:8px">(' + timeStr + ' ' + dayLabel + ')</span></div></div>';
-  }
-}
-
-function renderDoseTimer(vitalId) {
-  const v = formVitals.find(x => x.id === vitalId);
-  const el = document.getElementById('dose-timer-' + vitalId);
-  if (v && el) el.innerHTML = calcDoseTimerHTML(v);
-}
-
-// Keep dose timers updated every 30s
-setInterval(() => {
-  // Update form dose timers
-  formVitals.forEach(v => {
-    if (v.dateTime && v.doseInterval) renderDoseTimer(v.id);
-  });
-  // Re-render dashboard or history to keep dose countdowns live
-  if (currentView === 'dashboard') {
-    const a = analyze();
-    document.getElementById('view-dashboard').innerHTML = renderDashboard(a);
-  } else if (currentView === 'history') {
-    document.getElementById('view-history').innerHTML = renderHistory();
-  }
-}, 30000);
-function updateVital(id, field, value) {
-  const v = formVitals.find(x => x.id === id);
-  if (v) {
-    v[field] = value;
-    // If user selected "Other", re-render to show custom input
-    if (field === 'medicine' && value === 'Other') {
-      v.medicine = 'Other';
-      renderVitals();
-    }
-  }
-}
-
-function renderVitals() {
-  const c = document.getElementById('vitals-list'); if (!c) return;
-  const meds = getAllMeds();
-  const medOpts = meds.map(m => '<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
-  c.innerHTML = formVitals.map((v, i) => {
-    const isOther = v.medicine === 'Other';
-    return `
-    <div class="vitals-entry" data-vital-id="${v.id}">
-      <div class="vitals-header">
-        <span style="font-size:13px;font-weight:600;color:var(--accent-purple)">💊 Entry ${i+1}</span>
-        <button class="btn btn-sm btn-danger" onclick="removeVitalEntry('${v.id}')">×</button>
-      </div>
-      <div class="vitals-grid">
-        <div><label class="label" style="font-size:10px">Date/Time</label>
-          <input class="input" type="datetime-local" value="${esc(v.dateTime)}" onchange="updateVital('${v.id}','dateTime',this.value)"></div>
-        <div><label class="label" style="font-size:10px">Temp (°F)</label>
-          <input class="input" type="number" step="0.1" placeholder="101.2" value="${esc(v.temperature)}" onchange="updateVital('${v.id}','temperature',this.value)"></div>
-        <div><label class="label" style="font-size:10px">SpO2 (%)</label>
-          <input class="input" type="number" min="0" max="100" placeholder="98" value="${esc(v.spo2)}" onchange="updateVital('${v.id}','spo2',this.value)"></div>
-      </div>
-      <div class="vitals-grid" style="margin-top:8px">
-        <div><label class="label" style="font-size:10px">Medicine</label>
-          <select class="select" style="margin-bottom:0" onchange="updateVital('${v.id}','medicine',this.value)">
-            <option value="">Select...</option>${medOpts}
-          </select></div>
-        <div><label class="label" style="font-size:10px">Dosage</label>
-          <input class="input" placeholder="e.g. 500mg" value="${esc(v.dosage)}" onchange="updateVital('${v.id}','dosage',this.value)"></div>
-        <div><label class="label" style="font-size:10px">Every (hours)</label>
-          <input class="input" type="number" min="1" max="72" step="0.5" placeholder="e.g. 4" value="${esc(v.doseInterval)}" onchange="updateVital('${v.id}','doseInterval',this.value);renderDoseTimer('${v.id}')"></div>
-        <div><label class="label" style="font-size:10px">Note</label>
-          <input class="input" placeholder="Optional" value="${esc(v.notes)}" onchange="updateVital('${v.id}','notes',this.value)"></div>
-      </div>
-      <div id="dose-timer-${v.id}" style="margin-top:6px">${calcDoseTimerHTML(v)}</div>
-      ${isOther ? `
-      <div style="margin-top:8px;display:flex;gap:8px;align-items:flex-end">
-        <div style="flex:1">
-          <label class="label" style="font-size:10px">Custom Medicine Name</label>
-          <input class="input" style="margin-bottom:0" id="custom-med-${v.id}" placeholder="Enter medicine name..."
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMed('${v.id}')}">
-        </div>
-        <button class="btn btn-sm btn-accent" style="height:38px;white-space:nowrap" onclick="addCustomMed('${v.id}')">+ Add</button>
-      </div>` : ''}
-    </div>`;
+function renderVitals(){
+  const c=document.getElementById('vitals-list');if(!c)return;
+  const meds=getAllMeds();
+  const medOpts=meds.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+  c.innerHTML=formVitals.map((v,i)=>{
+    const isOther=v.medicine==='Other';
+    return '<div class="vitals-entry" data-vital-id="'+v.id+'"><div class="vitals-header"><span style="font-size:13px;font-weight:600;color:var(--accent-purple)">💊 Entry '+(i+1)+'</span><button class="btn btn-sm btn-danger" onclick="removeVitalEntry(\''+v.id+'\')">×</button></div>'
+    +'<div class="vitals-grid"><div><label class="label" style="font-size:10px">Date/Time</label><input class="input" type="datetime-local" value="'+esc(v.dateTime)+'" onchange="updateVital(\''+v.id+'\',\'dateTime\',this.value)"></div><div><label class="label" style="font-size:10px">Temp (°F)</label><input class="input" type="number" step="0.1" placeholder="101.2" value="'+esc(v.temperature)+'" onchange="updateVital(\''+v.id+'\',\'temperature\',this.value)"></div><div><label class="label" style="font-size:10px">SpO2 (%)</label><input class="input" type="number" min="0" max="100" placeholder="98" value="'+esc(v.spo2)+'" onchange="updateVital(\''+v.id+'\',\'spo2\',this.value)"></div></div>'
+    +'<div class="vitals-grid" style="margin-top:8px"><div><label class="label" style="font-size:10px">Medicine</label><select class="select" style="margin-bottom:0" onchange="updateVital(\''+v.id+'\',\'medicine\',this.value)"><option value="">Select...</option>'+medOpts+'</select></div><div><label class="label" style="font-size:10px">Dosage</label><input class="input" placeholder="e.g. 500mg" value="'+esc(v.dosage)+'" onchange="updateVital(\''+v.id+'\',\'dosage\',this.value)"></div><div><label class="label" style="font-size:10px">Every (hours)</label><input class="input" type="number" min="1" max="72" step="0.5" placeholder="e.g. 4" value="'+esc(v.doseInterval)+'" onchange="updateVital(\''+v.id+'\',\'doseInterval\',this.value);renderDoseTimer(\''+v.id+'\')"></div><div><label class="label" style="font-size:10px">Note</label><input class="input" placeholder="Optional" value="'+esc(v.notes)+'" onchange="updateVital(\''+v.id+'\',\'notes\',this.value)"></div></div>'
+    +'<div id="dose-timer-'+v.id+'" style="margin-top:6px">'+calcDoseTimerHTML(v)+'</div>'
+    +(isOther?'<div style="margin-top:8px;display:flex;gap:8px;align-items:flex-end"><div style="flex:1"><label class="label" style="font-size:10px">Custom Medicine Name</label><input class="input" style="margin-bottom:0" id="custom-med-'+v.id+'" placeholder="Enter medicine name..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();addCustomMed(\''+v.id+'\')}"></div><button class="btn btn-sm btn-accent" style="height:38px;white-space:nowrap" onclick="addCustomMed(\''+v.id+'\')">+ Add</button></div>':'')
+    +'</div>';
   }).join('');
-  // Restore select values
-  formVitals.forEach(v => {
-    if (v.medicine) {
-      const el = c.querySelector('[data-vital-id="'+v.id+'"] select');
-      if (el) {
-        // Check if the value exists in the options
-        const optExists = [...el.options].some(o => o.value === v.medicine);
-        if (optExists) el.value = v.medicine;
-        else if (v.medicine !== 'Other') {
-          // Medicine was custom but already saved — set to its value
-          el.value = v.medicine;
-        }
-      }
-    }
-  });
+  formVitals.forEach(v=>{if(v.medicine){const el=c.querySelector('[data-vital-id="'+v.id+'"] select');if(el){const has=[...el.options].some(o=>o.value===v.medicine);if(has)el.value=v.medicine;}}});
 }
 
-function submitForm() {
-  const f = (id) => document.getElementById(id)?.value || '';
-  const symptomStart = f('f-start');
-  if (!symptomStart || formSymptoms.length===0) { showToast('⚠️ Add a start date and at least one symptom'); return; }
-  const contacts = [...document.querySelectorAll('[data-contact]')].map(i=>i.value).filter(c=>c.trim());
-  const entry = {
-    id: editingId || genId(), symptomStart, recoveryDate: f('f-recovery'),
-    symptoms: [...formSymptoms], severity: f('f-severity') || 'Mild', temperature: f('f-temp'),
-    location: f('f-location'), locationDetail: f('f-location-detail'), activity: f('f-activity'),
-    contacts, diagnosis: f('f-diagnosis'), notes: f('f-notes'),
-    vitals: formVitals.filter(v => v.dateTime || v.temperature || v.spo2 || v.medicine),
-    createdAt: new Date().toISOString()
+function submitForm(){
+  const f=(id)=>document.getElementById(id)?.value||'';
+  const symptomStart=f('f-start');
+  if(!symptomStart||formSymptoms.length===0){showToast('⚠️ Add a start date and at least one symptom');return;}
+  const contacts=[...document.querySelectorAll('[data-contact]')].map(i=>i.value).filter(c=>c.trim());
+  const entry={
+    id:editingId||genId(),symptomStart,recoveryDate:f('f-recovery'),
+    symptoms:[...formSymptoms],severity:f('f-severity')||'Mild',temperature:f('f-temp'),
+    location:f('f-location'),locationDetail:f('f-location-detail'),activity:f('f-activity'),
+    contacts,diagnosis:f('f-diagnosis'),notes:f('f-notes'),
+    vitals:formVitals.filter(v=>v.dateTime||v.temperature||v.spo2||v.medicine),
+    createdAt:new Date().toISOString()
   };
-  if (editingId) { entries = entries.map(e => e.id===editingId ? entry : e); showToast('✅ Updated'); }
-  else { entries.unshift(entry); showToast('✅ Illness logged'); }
-  editingId = null; formSymptoms = []; formVitals = [];
-  persist(); switchView('history');
+  if(editingId){entries=entries.map(e=>e.id===editingId?entry:e);showToast('✅ Updated');}
+  else{entries.unshift(entry);showToast('✅ Illness logged');}
+  editingId=null;formSymptoms=[];formVitals=[];
+  persist();switchView('history');
 }
 
-function editEntry(id) {
-  const e = entries.find(x => x.id===id); if (!e) return;
-  editingId = id; formSymptoms = [...(e.symptoms||[])];
-  formVitals = (e.vitals||[]).map(v => ({...v, id: v.id || genId()}));
+function editEntry(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  editingId=id;formSymptoms=[...(e.symptoms||[])];
+  formVitals=(e.vitals||[]).map(v=>({...v,id:v.id||genId()}));
   switchView('log');
-  setTimeout(() => {
-    const sv = (s, v) => { const el=document.getElementById(s); if(el) el.value=v||''; };
-    sv('f-start', e.symptomStart); sv('f-recovery', e.recoveryDate);
-    sv('f-severity', e.severity); sv('f-temp', e.temperature);
-    sv('f-location', e.location); sv('f-location-detail', e.locationDetail);
-    sv('f-activity', e.activity); sv('f-diagnosis', e.diagnosis); sv('f-notes', e.notes);
-    renderSymptomTags(); renderVitals();
-    const cl = document.getElementById('contacts-list'); cl.innerHTML = '';
-    (e.contacts && e.contacts.length ? e.contacts : ['']).forEach((c,i) => {
-      const row = document.createElement('div'); row.className = 'contact-row';
-      row.innerHTML = '<input class="input" style="margin-bottom:0" placeholder="Contact '+(i+1)+'" data-contact value="'+esc(c)+'">'
-        +(i>0?'<button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>':'');
+  setTimeout(()=>{
+    const sv=(s,v)=>{const el=document.getElementById(s);if(el)el.value=v||'';};
+    sv('f-start',e.symptomStart);sv('f-recovery',e.recoveryDate);sv('f-severity',e.severity);
+    sv('f-temp',e.temperature);sv('f-location',e.location);sv('f-location-detail',e.locationDetail);
+    sv('f-activity',e.activity);sv('f-diagnosis',e.diagnosis);sv('f-notes',e.notes);
+    renderSymptomTags();renderVitals();
+    const cl=document.getElementById('contacts-list');cl.innerHTML='';
+    (e.contacts&&e.contacts.length?e.contacts:['']).forEach((c,i)=>{
+      const row=document.createElement('div');row.className='contact-row';
+      row.innerHTML='<input class="input" style="margin-bottom:0" placeholder="Contact '+(i+1)+'" data-contact value="'+esc(c)+'">'+(i>0?'<button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>':'');
       cl.appendChild(row);
     });
-  }, 0);
+  },0);
 }
-function deleteEntry(id) { entries = entries.filter(e => e.id!==id); persist(); render(); showToast('🗑️ Deleted'); }
+function deleteEntry(id){entries=entries.filter(e=>e.id!==id);persist();render();showToast('🗑️ Deleted');}
 
-// ─── Render ───
-function render() {
-  updateExportButtons();
-  const a = analyze();
-  document.getElementById('view-dashboard').innerHTML = renderDashboard(a);
-  if (currentView === 'log') {
-    document.getElementById('view-log').innerHTML = renderLogForm();
-    renderSymptomTags(); renderVitals();
-    if (!editingId) {
-      const cl = document.getElementById('contacts-list');
-      if (cl && cl.children.length===0) {
-        const row = document.createElement('div'); row.className = 'contact-row';
-        row.innerHTML = '<input class="input" style="margin-bottom:0" placeholder="Contact 1" data-contact>';
-        cl.appendChild(row);
-      }
-    }
+// ═══════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════
+function render(){
+  updateExportButtons();const a=analyze();
+  document.getElementById('view-dashboard').innerHTML=renderDashboard(a);
+  if(currentView==='log'){
+    document.getElementById('view-log').innerHTML=renderLogForm();
+    renderSymptomTags();renderVitals();
+    if(!editingId){const cl=document.getElementById('contacts-list');if(cl&&cl.children.length===0){const row=document.createElement('div');row.className='contact-row';row.innerHTML='<input class="input" style="margin-bottom:0" placeholder="Contact 1" data-contact>';cl.appendChild(row);}}
   }
-  document.getElementById('view-history').innerHTML = renderHistory();
-  document.getElementById('view-analysis').innerHTML = renderAnalysis(a);
+  document.getElementById('view-history').innerHTML=renderHistory();
+  document.getElementById('view-analysis').innerHTML=renderAnalysis(a);
 }
 
-function riskBarHTML(score, label) {
-  const pct = Math.round(score*100);
-  const color = pct>66?'#e74c3c':pct>33?'#f39c12':'#27ae60';
-  return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;color:var(--text-secondary)"><span>'+esc(label)+'</span><span style="color:'+color+';font-weight:700">'+pct+'%</span></div><div class="risk-bar-track"><div class="risk-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
-}
-function freqBarHTML(name, count, total, color) {
-  return '<div class="freq-row"><div class="freq-header"><span style="color:var(--text-secondary)">'+esc(name)+'</span><span style="font-family:\'JetBrains Mono\';color:'+color+'">'+count+'</span></div><div class="freq-track"><div class="freq-fill" style="width:'+(count/total*100)+'%;background:'+color+'"></div></div></div>';
-}
+function riskBarHTML(score,label){const pct=Math.round(score*100);const color=pct>66?'#e74c3c':pct>33?'#f39c12':'#27ae60';return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;color:var(--text-secondary)"><span>'+esc(label)+'</span><span style="color:'+color+';font-weight:700">'+pct+'%</span></div><div class="risk-bar-track"><div class="risk-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';}
+function freqBarHTML(name,count,total,color){return '<div class="freq-row"><div class="freq-header"><span style="color:var(--text-secondary)">'+esc(name)+'</span><span style="font-family:\'JetBrains Mono\';color:'+color+'">'+count+'</span></div><div class="freq-track"><div class="freq-fill" style="width:'+(count/total*100)+'%;background:'+color+'"></div></div></div>';}
 
-function getUpcomingDoses() {
-  const now = new Date();
-  const doses = [];
-  entries.forEach(e => {
-    (e.vitals || []).forEach((v, vi) => {
-      if (!v.medicine || !v.dateTime || !v.doseInterval) return;
-      const next = calcNextDose(v.dateTime, v.doseInterval);
-      if (!next) return;
-      const diff = next - now;
-      if (diff > 24 * 3600000 || diff < -24 * 3600000) return;
-      const doseKey = getDoseKey(e.id, v.id || vi);
-      const isPast = diff <= 0;
-      // Skip dismissed overdue doses
-      if (isPast && dismissedDoses.has(doseKey)) return;
-      doses.push({
-        medicine: v.medicine,
-        dosage: v.dosage,
-        interval: v.doseInterval,
-        nextDose: next,
-        diff: diff,
-        isPast: isPast,
-        diagnosis: e.diagnosis || 'Illness',
-        doseKey: doseKey
-      });
-    });
-  });
-  doses.sort((a, b) => {
-    if (a.isPast && !b.isPast) return -1;
-    if (!a.isPast && b.isPast) return 1;
-    return a.nextDose - b.nextDose;
-  });
+// ── Upcoming doses ──
+function getUpcomingDoses(){
+  const now=new Date(),doses=[];
+  entries.forEach(e=>{(e.vitals||[]).forEach((v,vi)=>{
+    if(!v.medicine||!v.dateTime||!v.doseInterval)return;
+    const next=calcNextDose(v.dateTime,v.doseInterval);if(!next)return;
+    const diff=next-now;if(diff>24*3600000||diff< -24*3600000)return;
+    const doseKey=getDoseKey(e.id,v.id||vi),isPast=diff<=0;
+    if(isPast&&dismissedDoses.has(doseKey))return;
+    doses.push({medicine:v.medicine,dosage:v.dosage,interval:v.doseInterval,nextDose:next,diff,isPast,diagnosis:e.diagnosis||'Illness',doseKey});
+  });});
+  doses.sort((a,b)=>{if(a.isPast&&!b.isPast)return -1;if(!a.isPast&&b.isPast)return 1;return a.nextDose-b.nextDose;});
   return doses;
 }
-
-function renderUpcomingDosesCard() {
-  const doses = getUpcomingDoses();
-  if (!doses.length) return '';
+function renderUpcomingDosesCard(){
+  const doses=getUpcomingDoses();if(!doses.length)return '';
   return '<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="color:var(--accent-purple)">💊</span> Upcoming Doses</h3>'
-    + doses.map(d => {
-      const now = new Date();
-      const absDiff = Math.abs(d.diff);
-      const hrs = Math.floor(absDiff / 3600000);
-      const mins = Math.floor((absDiff % 3600000) / 60000);
-      const timeStr = d.nextDose.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-      const isToday = d.nextDose.toDateString() === now.toDateString();
-      const isTomorrow = d.nextDose.toDateString() === new Date(now.getTime() + 86400000).toDateString();
-      const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : d.nextDose.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const urgentSoon = !d.isPast && d.diff < 3600000;
-
-      let bgColor, borderColor, statusIcon, statusText, statusColor;
-      if (d.isPast) {
-        bgColor = 'rgba(248,81,73,0.08)'; borderColor = 'rgba(248,81,73,0.2)';
-        statusIcon = '⏰'; statusText = 'Overdue by ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
-        statusColor = 'var(--danger)';
-      } else if (urgentSoon) {
-        bgColor = 'rgba(210,153,34,0.08)'; borderColor = 'rgba(210,153,34,0.2)';
-        statusIcon = '⚠'; statusText = 'Due in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
-        statusColor = 'var(--warning)';
-      } else {
-        bgColor = 'rgba(63,185,80,0.08)'; borderColor = 'rgba(63,185,80,0.2)';
-        statusIcon = '💊'; statusText = 'Due in ' + (hrs > 0 ? hrs + 'h ' : '') + mins + 'm';
-        statusColor = 'var(--success)';
-      }
-      return '<div data-dose-next="' + d.nextDose.toISOString() + '" style="padding:12px;border-radius:10px;background:' + bgColor + ';border:1px solid ' + borderColor + ';margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
-        + '<div>'
-        + '<div style="font-weight:600;font-size:14px;color:var(--accent-purple)">' + esc(d.medicine) + (d.dosage ? ' <span style="font-weight:400;color:var(--text-secondary)">· ' + esc(d.dosage) + '</span>' : '') + '</div>'
-        + '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Every ' + esc(d.interval) + 'h · for ' + esc(d.diagnosis) + '</div>'
-        + '</div>'
-        + '<div style="text-align:right;display:flex;align-items:center;gap:8px">'
-        + '<div>'
-        + '<div style="font-size:13px;font-weight:600;color:' + statusColor + '">' + statusIcon + ' ' + statusText + '</div>'
-        + '<div style="font-size:11px;color:var(--text-secondary)">' + timeStr + ' ' + dayLabel + '</div>'
-        + '</div>'
-        + (d.isPast ? '<button class="btn btn-sm" style="color:var(--text-secondary);border-color:var(--border);padding:4px 10px;font-size:11px" onclick="event.stopPropagation();dismissDose(\'' + d.doseKey + '\')" title="Dismiss this alert">✕</button>' : '')
-        + '</div></div>';
-    }).join('') + '</div>';
+  +doses.map(d=>{
+    const now=new Date(),absDiff=Math.abs(d.diff),hrs=Math.floor(absDiff/3600000),mins=Math.floor((absDiff%3600000)/60000);
+    const timeStr=d.nextDose.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const isToday=d.nextDose.toDateString()===now.toDateString();
+    const isTmrw=d.nextDose.toDateString()===new Date(now.getTime()+86400000).toDateString();
+    const dayL=isToday?'today':isTmrw?'tomorrow':d.nextDose.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const tt=(hrs>0?hrs+'h ':'')+mins+'m';
+    let bg,bd,si,st,sc;
+    if(d.isPast){bg='rgba(248,81,73,.08)';bd='rgba(248,81,73,.2)';si='⏰';st='Overdue by '+tt;sc='var(--danger)';}
+    else if(d.diff<3600000){bg='rgba(210,153,34,.08)';bd='rgba(210,153,34,.2)';si='⚠';st='Due in '+tt;sc='var(--warning)';}
+    else{bg='rgba(63,185,80,.08)';bd='rgba(63,185,80,.2)';si='💊';st='Due in '+tt;sc='var(--success)';}
+    return '<div style="padding:12px;border-radius:10px;background:'+bg+';border:1px solid '+bd+';margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><div style="font-weight:600;font-size:14px;color:var(--accent-purple)">'+esc(d.medicine)+(d.dosage?' <span style="font-weight:400;color:var(--text-secondary)">· '+esc(d.dosage)+'</span>':'')+'</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Every '+esc(d.interval)+'h · for '+esc(d.diagnosis)+'</div></div><div style="text-align:right;display:flex;align-items:center;gap:8px"><div><div style="font-size:13px;font-weight:600;color:'+sc+'">'+si+' '+st+'</div><div style="font-size:11px;color:var(--text-secondary)">'+timeStr+' '+dayL+'</div></div>'+(d.isPast?'<button class="btn btn-sm" style="color:var(--text-secondary);border-color:var(--border);padding:4px 10px;font-size:11px" onclick="event.stopPropagation();dismissDose(\''+d.doseKey+'\')" title="Dismiss">✕</button>':'')+'</div></div>';
+  }).join('')+'</div>';
 }
 
-function renderDashboard(a) {
-  const stats = '<div class="stats-grid">'+[
+// ── Dashboard ──
+function renderDashboard(a){
+  const stats='<div class="stats-grid">'+[
     {l:'Total Illnesses',v:entries.length,c:'var(--accent)'},
     {l:'Avg Duration',v:a?.avgDur?a.avgDur+'d':'—',c:'var(--accent-warm)'},
     {l:'Avg Gap',v:a?.avgGap?a.avgGap+'d':'—',c:'var(--success)'},
     {l:'Risk Factors',v:a?.risks.length||0,c:'var(--warning)'}
   ].map(s=>'<div class="card stat-card"><div class="stat-value" style="color:'+s.c+'">'+s.v+'</div><div class="stat-label">'+s.l+'</div></div>').join('')+'</div>';
-
-  if (!entries.length) return stats+'<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🏥</div><h2 style="font-size:20px;font-weight:600;margin-bottom:8px">No illnesses logged yet</h2><p style="color:var(--text-secondary);margin-bottom:20px">Start tracking to uncover patterns.</p><button class="btn-primary" style="max-width:280px;margin:0 auto" onclick="switchView(\'log\')">Log Your First Illness</button></div>';
-
-  // Upcoming doses card — shown first if there are any
-  const dosesHTML = renderUpcomingDosesCard();
-
-  let riskHTML = '';
-  if (a && a.risks.length) {
-    riskHTML = '<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="color:var(--warning)">⚠</span> Top Risk Factors</h3>'+a.risks.map(r => riskBarHTML(r.score,r.factor)+'<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 12px 4px">'+esc(r.detail)+'</div>').join('')+'</div>';
-  }
-  const recent = [...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart)).slice(0,3);
-  const recentHTML = '<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px">Recent Illnesses</h3>'+recent.map(e => '<div class="entry-row"><div><div style="font-weight:600;font-size:14px">'+esc(e.diagnosis||'Undiagnosed')+'</div><div style="font-size:12px;color:var(--text-secondary)">'+fmtDate(e.symptomStart)+' · '+esc(e.severity)+' · '+esc(e.location)+'</div></div><div style="display:flex;gap:4px;flex-wrap:wrap">'+(e.symptoms||[]).slice(0,3).map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+((e.symptoms||[]).length>3?'<span style="font-size:11px;color:var(--text-secondary);padding:3px 6px">+'+(e.symptoms.length-3)+'</span>':'')+'</div></div>').join('')+'</div>';
-  return stats + dosesHTML + riskHTML + recentHTML;
+  if(!entries.length)return stats+'<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🏥</div><h2 style="font-size:20px;font-weight:600;margin-bottom:8px">No illnesses logged yet</h2><p style="color:var(--text-secondary);margin-bottom:20px">Start tracking to uncover patterns.</p><button class="btn-primary" style="max-width:280px;margin:0 auto" onclick="switchView(\'log\')">Log Your First Illness</button></div>';
+  const dosesHTML=renderUpcomingDosesCard();
+  let riskHTML='';
+  if(a&&a.risks.length)riskHTML='<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="color:var(--warning)">⚠</span> Top Risk Factors</h3>'+a.risks.map(r=>riskBarHTML(r.score,r.factor)+'<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 12px 4px">'+esc(r.detail)+'</div>').join('')+'</div>';
+  const recent=[...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart)).slice(0,3);
+  const recentHTML='<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px">Recent Illnesses</h3>'+recent.map(e=>'<div class="entry-row clickable" onclick="goToEntry(\''+e.id+'\')"><div><div style="font-weight:600;font-size:14px">'+esc(e.diagnosis||'Undiagnosed')+'</div><div style="font-size:12px;color:var(--text-secondary)">'+fmtDate(e.symptomStart)+' · '+esc(e.severity)+(e.temperature?' · '+tempHTML(e.temperature):'')+'</div></div><div style="display:flex;gap:4px;flex-wrap:wrap">'+(e.symptoms||[]).slice(0,3).map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+((e.symptoms||[]).length>3?'<span style="font-size:11px;color:var(--text-secondary);padding:3px 6px">+'+(e.symptoms.length-3)+'</span>':'')+'</div></div>').join('')+'</div>';
+  return stats+dosesHTML+riskHTML+recentHTML;
 }
 
-function renderLogForm() {
-  const selOpts = (arr) => arr.map(o=>'<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+// ── Log Form ──
+function renderLogForm(){
+  const selOpts=(arr)=>arr.map(o=>'<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
   return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">'+(editingId?'Edit Illness Entry':'Log New Illness')+'</h2>'
   +'<div class="card"><h3 class="section-title">📅 When</h3><div class="grid-2"><div><label class="label">Symptom Start *</label><input class="input" type="datetime-local" id="f-start"></div><div><label class="label">Recovery Date</label><input class="input" type="date" id="f-recovery"></div></div></div>'
   +'<div class="card"><h3 class="section-title">🤒 Symptoms *</h3><div id="symptom-tags" class="tag-grid"></div><div class="grid-2"><div><label class="label">Severity</label><select class="select" id="f-severity"><option value="">Select...</option>'+selOpts(SEVERITY)+'</select></div><div><label class="label">Initial Temp (°F)</label><input class="input" type="number" step="0.1" placeholder="e.g. 101.2" id="f-temp"></div></div></div>'
@@ -932,108 +621,69 @@ function renderLogForm() {
   +'<div style="display:flex;gap:12px"><button class="btn-primary" onclick="submitForm()">'+(editingId?'Update Entry':'Save Entry')+'</button>'+(editingId?'<button class="btn" style="padding:14px 20px;font-size:14px;cursor:pointer;font-family:inherit" onclick="editingId=null;formSymptoms=[];formVitals=[];switchView(\'log\')">Cancel</button>':'')+'</div>';
 }
 
-function renderVitalsInHistory(vitals, entryId) {
-  if (!vitals || !vitals.length) return '';
+// ── History Vitals ──
+function renderVitalsInHistory(vitals,entryId){
+  if(!vitals||!vitals.length)return '';
   return '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--accent-purple);margin-bottom:8px">💊 Medicine &amp; Vitals Log</div>'
-    +vitals.map((v, vi) => {
-      let parts = [];
-      if (v.temperature) parts.push('<span style="color:var(--accent-warm)">🌡 '+esc(v.temperature)+'°F</span>');
-      if (v.spo2) parts.push('<span style="color:var(--accent)">💨 SpO2: '+esc(v.spo2)+'%</span>');
-      if (v.medicine) parts.push('<span class="chip-med">'+esc(v.medicine)+(v.dosage?' · '+esc(v.dosage):'')+(v.doseInterval?' · every '+esc(v.doseInterval)+'h':'')+'</span>');
-      if (v.notes) parts.push('<span style="color:var(--text-secondary);font-style:italic">'+esc(v.notes)+'</span>');
-      // Next dose line
-      let doseLine = '';
-      const next = calcNextDose(v.dateTime, v.doseInterval);
-      if (next) {
-        const doseKey = getDoseKey(entryId, v.id || vi);
-        const now = new Date();
-        const diff = next - now;
-        const isPast = diff <= 0;
-        // Skip if dismissed
-        if (isPast && dismissedDoses.has(doseKey)) {
-          // Show nothing for dismissed overdue
-        } else {
-          const absDiff = Math.abs(diff);
-          const hrs = Math.floor(absDiff / 3600000);
-          const mins = Math.floor((absDiff % 3600000) / 60000);
-          const timeStr = next.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-          const isToday = next.toDateString() === now.toDateString();
-          const isTomorrow = next.toDateString() === new Date(now.getTime() + 86400000).toDateString();
-          const dayLabel = isToday ? 'today' : isTomorrow ? 'tomorrow' : next.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          const urgentSoon = !isPast && diff < 3600000;
-          let bgColor, borderColor, icon, text, textColor;
-          if (isPast) {
-            bgColor = 'rgba(248,81,73,0.08)'; borderColor = 'rgba(248,81,73,0.15)';
-            icon = '⏰'; text = 'Overdue by '+(hrs>0?hrs+'h ':'')+mins+'m'; textColor = 'var(--danger)';
-          } else if (urgentSoon) {
-            bgColor = 'rgba(210,153,34,0.08)'; borderColor = 'rgba(210,153,34,0.15)';
-            icon = '⚠'; text = 'Next dose in '+(hrs>0?hrs+'h ':'')+mins+'m'; textColor = 'var(--warning)';
-          } else {
-            bgColor = 'rgba(63,185,80,0.08)'; borderColor = 'rgba(63,185,80,0.15)';
-            icon = '💊'; text = 'Next dose in '+(hrs>0?hrs+'h ':'')+mins+'m'; textColor = 'var(--success)';
-          }
-          doseLine = '<div style="margin-top:4px;display:flex;align-items:center;gap:6px">'
-            + '<div data-dose-next="'+next.toISOString()+'" style="padding:6px 10px;border-radius:8px;background:'+bgColor+';border:1px solid '+borderColor+';font-size:12px;display:inline-flex;align-items:center;gap:6px">'
-            + '<span>'+icon+'</span>'
-            + '<span style="font-weight:600;color:'+textColor+'">'+text+'</span>'
-            + '<span style="color:var(--text-secondary)">· '+timeStr+' '+dayLabel+'</span>'
-            + '</div>'
-            + (isPast ? '<button class="btn btn-sm" style="color:var(--text-secondary);border-color:var(--border);padding:3px 8px;font-size:11px" onclick="event.stopPropagation();dismissDose(\''+doseKey+'\')" title="Dismiss">✕</button>' : '')
-            + '</div>';
-        }
+  +vitals.map((v,vi)=>{
+    let parts=[];
+    if(v.temperature)parts.push('<span>🌡 '+tempHTML(v.temperature)+'</span>');
+    if(v.spo2)parts.push('<span style="color:var(--accent)">💨 SpO2: '+esc(v.spo2)+'%</span>');
+    if(v.medicine)parts.push('<span class="chip-med">'+esc(v.medicine)+(v.dosage?' · '+esc(v.dosage):'')+(v.doseInterval?' · every '+esc(v.doseInterval)+'h':'')+'</span>');
+    if(v.notes)parts.push('<span style="color:var(--text-secondary);font-style:italic">'+esc(v.notes)+'</span>');
+    let doseLine='';
+    const next=calcNextDose(v.dateTime,v.doseInterval);
+    if(next){
+      const doseKey=getDoseKey(entryId,v.id||vi),now=new Date(),diff=next-now,isPast=diff<=0;
+      if(isPast&&dismissedDoses.has(doseKey)){/* dismissed */}
+      else{
+        const absDiff=Math.abs(diff),hrs=Math.floor(absDiff/3600000),mins=Math.floor((absDiff%3600000)/60000);
+        const timeStr=next.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        const isToday=next.toDateString()===now.toDateString();const isTmrw=next.toDateString()===new Date(now.getTime()+86400000).toDateString();
+        const dayL=isToday?'today':isTmrw?'tomorrow':next.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const tt=(hrs>0?hrs+'h ':'')+mins+'m';
+        let bg,bd,ic,tx,tc;
+        if(isPast){bg='rgba(248,81,73,.08)';bd='rgba(248,81,73,.15)';ic='⏰';tx='Overdue by '+tt;tc='var(--danger)';}
+        else if(diff<3600000){bg='rgba(210,153,34,.08)';bd='rgba(210,153,34,.15)';ic='⚠';tx='Next dose in '+tt;tc='var(--warning)';}
+        else{bg='rgba(63,185,80,.08)';bd='rgba(63,185,80,.15)';ic='💊';tx='Next dose in '+tt;tc='var(--success)';}
+        doseLine='<div style="margin-top:4px;display:flex;align-items:center;gap:6px"><div style="padding:6px 10px;border-radius:8px;background:'+bg+';border:1px solid '+bd+';font-size:12px;display:inline-flex;align-items:center;gap:6px"><span>'+ic+'</span><span style="font-weight:600;color:'+tc+'">'+tx+'</span><span style="color:var(--text-secondary)">· '+timeStr+' '+dayL+'</span></div>'+(isPast?'<button class="btn btn-sm" style="color:var(--text-secondary);border-color:var(--border);padding:3px 8px;font-size:11px" onclick="event.stopPropagation();dismissDose(\''+doseKey+'\')" title="Dismiss">✕</button>':'')+'</div>';
       }
-      return '<div style="margin-bottom:10px">'
-        + '<div style="font-size:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px">'
-        + '<span style="color:var(--text-secondary);font-family:\'JetBrains Mono\';font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'
-        + parts.join('')
-        + '</div>'
-        + doseLine
-        + '</div>';
-    }).join('')+'</div>';
+    }
+    return '<div style="margin-bottom:10px"><div style="font-size:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="color:var(--text-secondary);font-family:\'JetBrains Mono\';font-size:11px;min-width:130px">'+fmtDateTime(v.dateTime)+'</span>'+parts.join('')+'</div>'+doseLine+'</div>';
+  }).join('')+'</div>';
 }
 
-function renderHistory() {
-  if (!entries.length) return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Illness History</h2><div class="card" style="text-align:center;padding:40px"><p style="color:var(--text-secondary)">No entries yet.</p></div>';
-  const sorted = [...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart));
+// ── History ──
+function renderHistory(){
+  if(!entries.length)return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Illness History</h2><div class="card" style="text-align:center;padding:40px"><p style="color:var(--text-secondary)">No entries yet.</p></div>';
+  const sorted=[...entries].sort((a,b)=>new Date(b.symptomStart)-new Date(a.symptomStart));
   return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Illness History</h2>'
-    +sorted.map(e => '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div style="font-size:17px;font-weight:700">'+esc(e.diagnosis||'Undiagnosed Illness')+'</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px">'+fmtDate(e.symptomStart)+(e.recoveryDate?' → '+fmtDate(e.recoveryDate)+' ('+daysBetween(e.symptomStart,e.recoveryDate)+'d)':'')+'</div></div><div style="display:flex;gap:6px;flex-wrap:wrap">'
-    +(gcalAccessToken?'<button class="btn btn-sm" style="color:#4285F4" onclick="syncToGCal(entries.find(x=>x.id===\''+e.id+'\'))">📅 Sync</button>':'')
-    +'<button class="btn btn-sm btn-accent" onclick="editEntry(\''+e.id+'\')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteEntry(\''+e.id+'\')">Delete</button></div></div>'
-    +'<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">'+(e.symptoms||[]).map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+'</div>'
-    +'<div style="margin-top:12px" class="grid-auto"><div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Severity:</strong> '+esc(e.severity)+(e.temperature?' · '+esc(e.temperature)+'°F':'')+'</div><div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Location:</strong> '+esc(e.location)+(e.locationDetail?' — '+esc(e.locationDetail):'')+'</div>'+(e.activity?'<div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Activity:</strong> '+esc(e.activity)+'</div>':'')+'</div>'
-    +(e.contacts&&e.contacts.length?'<div style="margin-top:8px;font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Contacts:</strong> '+esc(e.contacts.join(', '))+'</div>':'')
-    +(e.notes?'<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic">"'+esc(e.notes)+'"</div>':'')
-    +renderVitalsInHistory(e.vitals, e.id)
-    +'</div>').join('');
+  +sorted.map(e=>'<div class="card" id="entry-'+e.id+'"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div style="font-size:17px;font-weight:700">'+esc(e.diagnosis||'Undiagnosed Illness')+'</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px">'+fmtDate(e.symptomStart)+(e.recoveryDate?' → '+fmtDate(e.recoveryDate)+' ('+daysBetween(e.symptomStart,e.recoveryDate)+'d)':'')+'</div></div><div style="display:flex;gap:6px;flex-wrap:wrap">'
+  +'<button class="btn btn-sm" style="color:var(--accent-purple)" onclick="exportPNG(\''+e.id+'\')" title="Export as PNG">📸</button>'
+  +(gcalAccessToken?'<button class="btn btn-sm" style="color:#4285F4" onclick="syncToGCal(entries.find(x=>x.id===\''+e.id+'\'))">📅</button>':'')
+  +'<button class="btn btn-sm btn-accent" onclick="editEntry(\''+e.id+'\')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteEntry(\''+e.id+'\')">Delete</button></div></div>'
+  +'<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">'+(e.symptoms||[]).map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+'</div>'
+  +'<div style="margin-top:12px" class="grid-auto"><div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Severity:</strong> '+esc(e.severity)+(e.temperature?' · 🌡 '+tempHTML(e.temperature):'')+'</div><div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Location:</strong> '+esc(e.location)+(e.locationDetail?' — '+esc(e.locationDetail):'')+'</div>'+(e.activity?'<div style="font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Activity:</strong> '+esc(e.activity)+'</div>':'')+'</div>'
+  +(e.contacts&&e.contacts.length?'<div style="margin-top:8px;font-size:12px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Contacts:</strong> '+esc(e.contacts.join(', '))+'</div>':'')
+  +(e.notes?'<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);font-style:italic">"'+esc(e.notes)+'"</div>':'')
+  +renderVitalsInHistory(e.vitals,e.id)
+  +'</div>').join('');
 }
 
-function renderAnalysis(a) {
-  if (!a || entries.length < 2) return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Pattern Analysis</h2><div class="card" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:12px">📊</div><p style="color:var(--text-secondary)">Log at least 2 illness events to see patterns.</p></div>';
-
-  const riskHTML = '<div class="card"><h3 style="font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px"><span style="color:var(--warning)">⚠</span> Calculated Risk Factors</h3><p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">Based on '+a.total+' logged illnesses</p>'
-    +(a.risks.length ? a.risks.map(r => riskBarHTML(r.score,r.factor)+'<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 16px 4px">'+esc(r.detail)+'</div>').join('') : '<p style="color:var(--text-secondary);font-size:13px">No strong patterns yet.</p>')+'</div>';
-
-  const freqHTML = '<div class="grid-2"><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Top Symptoms</h4>'+a.topS.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent)')).join('')+'</div><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Top Locations</h4>'+a.topL.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent-warm)')).join('')+'</div></div>';
-
-  const contactActivityHTML = '<div class="grid-2"><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Recurring Contacts</h4>'
-    +(a.topC.length ? a.topC.map(([n,c])=>'<div class="entry-row" style="margin-bottom:6px;font-size:13px"><span style="text-transform:capitalize">'+esc(n)+'</span><span style="font-family:\'JetBrains Mono\';color:var(--danger)">'+c+'×</span></div>').join('') : '<p style="font-size:12px;color:var(--text-secondary)">No recurring contacts</p>')
-    +'</div><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Activity Patterns</h4>'
-    +(a.topA.length ? a.topA.map(([n,c])=>'<div class="entry-row" style="margin-bottom:6px;font-size:13px"><span>'+esc(n)+'</span><span style="font-family:\'JetBrains Mono\';color:var(--success)">'+c+'×</span></div>').join('') : '<p style="font-size:12px;color:var(--text-secondary)">No patterns</p>')
-    +'</div></div>';
-
-  const medHTML = a.topMed && a.topMed.length ? '<div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">💊 Most Used Medicines</h4>'+a.topMed.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent-purple)')).join('')+'</div>' : '';
-
-  const timingHTML = '<div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Timing Insights</h4><div class="grid-auto">'
-    +(a.peakM?'<div class="timing-box"><div class="timing-value" style="color:var(--warning)">'+esc(a.peakM[0])+'</div><div class="timing-label">Peak month ('+a.peakM[1]+'×)</div></div>':'')
-    +(a.peakD?'<div class="timing-box"><div class="timing-value" style="color:var(--accent)">'+esc(a.peakD[0])+'</div><div class="timing-label">Most common day ('+a.peakD[1]+'×)</div></div>':'')
-    +(a.avgGap!==null?'<div class="timing-box"><div class="timing-value" style="color:var(--success)">'+a.avgGap+' days</div><div class="timing-label">Avg gap between illnesses</div></div>':'')
-    +(a.avgDur!==null?'<div class="timing-box"><div class="timing-value" style="color:var(--accent-warm)">'+a.avgDur+' days</div><div class="timing-label">Avg illness duration</div></div>':'')
-    +'</div></div>';
-
-  return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Pattern Analysis</h2>'+riskHTML+freqHTML+contactActivityHTML+medHTML+timingHTML;
+// ── Analysis ──
+function renderAnalysis(a){
+  if(!a||entries.length<2)return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Pattern Analysis</h2><div class="card" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:12px">📊</div><p style="color:var(--text-secondary)">Log at least 2 illness events to see patterns.</p></div>';
+  const riskHTML='<div class="card"><h3 style="font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px"><span style="color:var(--warning)">⚠</span> Calculated Risk Factors</h3><p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">Based on '+a.total+' logged illnesses</p>'+(a.risks.length?a.risks.map(r=>riskBarHTML(r.score,r.factor)+'<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 16px 4px">'+esc(r.detail)+'</div>').join(''):'<p style="color:var(--text-secondary);font-size:13px">No strong patterns yet.</p>')+'</div>';
+  const freqHTML='<div class="grid-2"><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Top Symptoms</h4>'+a.topS.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent)')).join('')+'</div><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Top Locations</h4>'+a.topL.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent-warm)')).join('')+'</div></div>';
+  const caHTML='<div class="grid-2"><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Recurring Contacts</h4>'+(a.topC.length?a.topC.map(([n,c])=>'<div class="entry-row" style="margin-bottom:6px;font-size:13px"><span style="text-transform:capitalize">'+esc(n)+'</span><span style="font-family:\'JetBrains Mono\';color:var(--danger)">'+c+'×</span></div>').join(''):'<p style="font-size:12px;color:var(--text-secondary)">No recurring contacts</p>')+'</div><div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Activity Patterns</h4>'+(a.topA.length?a.topA.map(([n,c])=>'<div class="entry-row" style="margin-bottom:6px;font-size:13px"><span>'+esc(n)+'</span><span style="font-family:\'JetBrains Mono\';color:var(--success)">'+c+'×</span></div>').join(''):'<p style="font-size:12px;color:var(--text-secondary)">No patterns</p>')+'</div></div>';
+  const medHTML=a.topMed&&a.topMed.length?'<div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">💊 Most Used Medicines</h4>'+a.topMed.map(([n,c])=>freqBarHTML(n,c,a.total,'var(--accent-purple)')).join('')+'</div>':'';
+  const timingHTML='<div class="card"><h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Timing Insights</h4><div class="grid-auto">'+(a.peakM?'<div class="timing-box"><div class="timing-value" style="color:var(--warning)">'+esc(a.peakM[0])+'</div><div class="timing-label">Peak month ('+a.peakM[1]+'×)</div></div>':'')+(a.peakD?'<div class="timing-box"><div class="timing-value" style="color:var(--accent)">'+esc(a.peakD[0])+'</div><div class="timing-label">Most common day ('+a.peakD[1]+'×)</div></div>':'')+(a.avgGap!==null?'<div class="timing-box"><div class="timing-value" style="color:var(--success)">'+a.avgGap+' days</div><div class="timing-label">Avg gap between illnesses</div></div>':'')+(a.avgDur!==null?'<div class="timing-box"><div class="timing-value" style="color:var(--accent-warm)">'+a.avgDur+' days</div><div class="timing-label">Avg illness duration</div></div>':'')+'</div></div>';
+  return '<h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Pattern Analysis</h2>'+riskHTML+freqHTML+caHTML+medHTML+timingHTML;
 }
 
-// ─── Init ───
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
 document.getElementById('app-version').textContent = APP_VERSION;
 document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
 loadLocal();
@@ -1041,4 +691,4 @@ initFirebase();
 render();
 </script>
 </body>
-</html
+</html>
