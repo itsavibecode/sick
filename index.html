@@ -219,10 +219,15 @@ function calcNextDose(dateTime, intervalHours) {
   if (isNaN(taken)) return null;
   return new Date(taken.getTime() + parseFloat(intervalHours) * 3600000);
 }
-function calcDoseTimerHTML(v) {
+function calcDoseTimerHTML(v, entryId) {
   const next = calcNextDose(v.dateTime, v.doseInterval);
   if (!next) return '';
   const now = new Date(), diff = next - now, isPast = diff <= 0, absDiff = Math.abs(diff);
+  // If overdue and dismissed, show nothing
+  if (isPast && entryId) {
+    const doseKey = getDoseKey(entryId, v.id);
+    if (dismissedDoses.has(doseKey)) return '';
+  }
   const hrs = Math.floor(absDiff / 3600000), mins = Math.floor((absDiff % 3600000) / 60000);
   const timeStr = next.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
   const isToday = next.toDateString() === now.toDateString();
@@ -241,7 +246,7 @@ function calcDoseTimerHTML(v) {
 function renderDoseTimer(vitalId) {
   const v = formVitals.find(x => x.id === vitalId);
   const el = document.getElementById('dose-timer-' + vitalId);
-  if (v && el) el.innerHTML = calcDoseTimerHTML(v);
+  if (v && el) el.innerHTML = calcDoseTimerHTML(v, editingId);
 }
 // Auto-refresh timers
 setInterval(() => {
@@ -492,9 +497,10 @@ function renderVitals(){
   c.innerHTML=formVitals.map((v,i)=>{
     const isOther=v.medicine==='Other';
     return '<div class="vitals-entry" data-vital-id="'+v.id+'"><div class="vitals-header"><span style="font-size:13px;font-weight:600;color:var(--accent-purple)">💊 Entry '+(i+1)+'</span><button class="btn btn-sm btn-danger" onclick="removeVitalEntry(\''+v.id+'\')">×</button></div>'
-    +'<div class="vitals-grid"><div><label class="label" style="font-size:10px">Date/Time</label><input class="input" type="datetime-local" value="'+esc(v.dateTime)+'" onchange="updateVital(\''+v.id+'\',\'dateTime\',this.value)"></div><div><label class="label" style="font-size:10px">Temp (°F)</label><input class="input" type="number" step="0.1" placeholder="101.2" value="'+esc(v.temperature)+'" onchange="updateVital(\''+v.id+'\',\'temperature\',this.value)"></div><div><label class="label" style="font-size:10px">SpO2 (%)</label><input class="input" type="number" min="0" max="100" placeholder="98" value="'+esc(v.spo2)+'" onchange="updateVital(\''+v.id+'\',\'spo2\',this.value)"></div></div>'
+    +'<div style="margin-bottom:8px"><label class="label" style="font-size:10px">Date/Time</label><input class="input" style="margin-bottom:0" type="datetime-local" value="'+esc(v.dateTime)+'" onchange="updateVital(\''+v.id+'\',\'dateTime\',this.value)"></div>'
+    +'<div class="vitals-grid"><div><label class="label" style="font-size:10px">Temp (°F)</label><input class="input" type="number" step="0.1" placeholder="101.2" value="'+esc(v.temperature)+'" onchange="updateVital(\''+v.id+'\',\'temperature\',this.value)"></div><div><label class="label" style="font-size:10px">SpO2 (%)</label><input class="input" type="number" min="0" max="100" placeholder="98" value="'+esc(v.spo2)+'" onchange="updateVital(\''+v.id+'\',\'spo2\',this.value)"></div></div>'
     +'<div class="vitals-grid" style="margin-top:8px"><div><label class="label" style="font-size:10px">Medicine</label><select class="select" style="margin-bottom:0" onchange="updateVital(\''+v.id+'\',\'medicine\',this.value)"><option value="">Select...</option>'+medOpts+'</select></div><div><label class="label" style="font-size:10px">Dosage</label><input class="input" placeholder="e.g. 500mg" value="'+esc(v.dosage)+'" onchange="updateVital(\''+v.id+'\',\'dosage\',this.value)"></div><div><label class="label" style="font-size:10px">Every (hours)</label><input class="input" type="number" min="1" max="72" step="0.5" placeholder="e.g. 4" value="'+esc(v.doseInterval)+'" onchange="updateVital(\''+v.id+'\',\'doseInterval\',this.value);renderDoseTimer(\''+v.id+'\')"></div><div><label class="label" style="font-size:10px">Note</label><input class="input" placeholder="Optional" value="'+esc(v.notes)+'" onchange="updateVital(\''+v.id+'\',\'notes\',this.value)"></div></div>'
-    +'<div id="dose-timer-'+v.id+'" style="margin-top:6px">'+calcDoseTimerHTML(v)+'</div>'
+    +'<div id="dose-timer-'+v.id+'" style="margin-top:6px">'+calcDoseTimerHTML(v, editingId)+'</div>'
     +(isOther?'<div style="margin-top:8px;display:flex;gap:8px;align-items:flex-end"><div style="flex:1"><label class="label" style="font-size:10px">Custom Medicine Name</label><input class="input" style="margin-bottom:0" id="custom-med-'+v.id+'" placeholder="Enter medicine name..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();addCustomMed(\''+v.id+'\')}"></div><button class="btn btn-sm btn-accent" style="height:38px;white-space:nowrap" onclick="addCustomMed(\''+v.id+'\')">+ Add</button></div>':'')
     +'</div>';
   }).join('');
