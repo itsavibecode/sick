@@ -8,8 +8,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 | File | Description |
 |------|-------------|
-| `v0.36.html` | Current release — single-file app, deploy to GitHub Pages |
-| `firestore.rules` | Firestore security rules — paste into Firebase Console |
+| `index.html` | Current release — single-file app, served by GitHub Pages |
 | `README.md` | This file |
 
 ## Features
@@ -27,9 +26,9 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Setup
 
-1. Deploy `v0.36.html` to GitHub Pages
+1. Deploy `index.html` to GitHub Pages
 2. Configure Firebase: Authentication (Google), Firestore Database
-3. Apply `firestore.rules` in Firebase Console → Firestore → Rules
+3. Lock Firestore rules to authenticated users only (`/users/{uid}` per-user docs)
 4. Add your GitHub Pages domain to Firebase Authorized Domains
 5. Enable Google Calendar API in Google Cloud Console (same project)
 
