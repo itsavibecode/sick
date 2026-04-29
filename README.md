@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.36**
+**Current Version: v0.37**
 
 Track · Analyze · Prevent — A personal illness tracking app with pattern analysis, medicine/vitals logging, Google Calendar sync, and Firebase cloud storage.
 
@@ -9,6 +9,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 | File | Description |
 |------|-------------|
 | `index.html` | Current release — single-file app, served by GitHub Pages |
+| `og-image.png` | 1200×630 social preview image (Open Graph + Twitter) |
 | `README.md` | This file |
 
 ## Features
@@ -34,6 +35,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.37** — Open Graph + Twitter card meta tags, canonical URL, theme-color, and a 1200×630 OG image (gradient + stethoscope + angled dashboard screenshot) so links unfurl with a real preview on Discord, iMessage, Slack, X, and search engines instead of falling back to plain text
 - **v0.36** — PNG export per illness, versioned filenames, dismissed alerts sync to Firestore, dashboard click-to-history, temperature color coding by fever severity, improved editing flow
 - **v0.35** — Dose interval tracking, upcoming doses on dashboard, dismissable overdue alerts, version number display
 - **v0.34** — Custom medicine dropdown with "Other" option, persistent custom meds
