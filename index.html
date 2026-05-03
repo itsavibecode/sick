@@ -86,6 +86,8 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<div id="demo-banner" class="hidden" style="background:linear-gradient(90deg,#a371f7 0%,#58a6ff 100%);color:#fff;padding:8px 16px;display:flex;justify-content:center;align-items:center;gap:14px;font-size:13px;font-weight:500;flex-wrap:wrap"><span>🎭 <strong>Demo Mode</strong> — sample data, nothing is saved</span><button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer">Exit Demo</button></div>
+
 <div id="auth-banner" class="auth-banner">
   <div id="auth-signed-out"><span style="color:var(--text-secondary)">Sign in to sync data &amp; Google Calendar</span></div>
   <div id="auth-signed-in" class="user-info hidden"><img id="user-avatar" class="user-avatar" src="" alt=""><span id="user-name" style="font-weight:600"></span></div>
@@ -130,7 +132,7 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 // ═══════════════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = 'v0.37';
+const APP_VERSION = 'v0.38';
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -147,6 +149,7 @@ let gcalAccessToken = null;
 let dismissedDoses = new Set();
 function loadDismissed() { try { const r = localStorage.getItem('illness_dismissed_doses'); if (r) dismissedDoses = new Set(JSON.parse(r)); } catch(e) {} }
 function saveDismissed() {
+  if (demoMode) return;
   try { localStorage.setItem('illness_dismissed_doses', JSON.stringify([...dismissedDoses])); } catch(e) {}
   // Sync to Firestore
   if (firebaseReady && currentUser && db) {
@@ -161,6 +164,7 @@ loadDismissed();
 let customMeds = [];
 function loadCustomMeds() { try { const r = localStorage.getItem('illness_custom_meds'); if (r) customMeds = JSON.parse(r); } catch(e) {} }
 function saveCustomMeds() {
+  if (demoMode) return;
   try { localStorage.setItem('illness_custom_meds', JSON.stringify(customMeds)); } catch(e) {}
   if (firebaseReady && currentUser && db) { try { db.collection('users').doc(currentUser.uid).set({ customMeds }, { merge: true }); } catch(e) {} }
 }
@@ -180,6 +184,79 @@ function addCustomMed(vitalId) {
   showToast('✅ "' + name + '" added to your medicines');
 }
 loadCustomMeds();
+
+// ═══════════════════════════════════════════════
+// DEMO MODE
+// ═══════════════════════════════════════════════
+let demoMode = false;
+let demoBackup = null;
+const DEMO_CUSTOM_MEDS = ['Mucinex DM'];
+function buildDemoEntries() {
+  const pad = n => String(n).padStart(2, '0');
+  const dt = (daysAgo, hour = 10, min = 0) => {
+    const d = new Date(Date.now() - daysAgo * 86400000);
+    d.setHours(hour, min, 0, 0);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const dateOnly = daysAgo => {
+    const d = new Date(Date.now() - daysAgo * 86400000);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  };
+  const localISO = msAgo => {
+    const d = new Date(Date.now() - msAgo);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  return [
+    { id: 'demo-active', symptomStart: dt(1, 8), recoveryDate: '', symptoms: ['Cough','Sore Throat','Congestion','Headache'], severity: 'Moderate', initialTemp: '100.4', location: 'Office/Work', locationDetails: '', activity: 'Working', contacts: ['Coworker A'], diagnosis: 'Common Cold', notes: 'Started feeling tired yesterday, full symptoms by morning.', vitals: [
+      { id:'v-a1', dateTime: localISO(5*3600e3), temperature:'100.6', spo2:'97', medicine:'Tylenol (Acetaminophen)', dosage:'500mg', doseInterval:'4', notes:'' },
+      { id:'v-a2', dateTime: localISO(1*3600e3), temperature:'99.8', spo2:'98', medicine:'DayQuil', dosage:'30ml', doseInterval:'4', notes:'' },
+    ]},
+    { id: 'demo-flu', symptomStart: dt(22, 19), recoveryDate: dateOnly(15), symptoms: ['Fever','Body Aches','Headache','Chills','Fatigue','Cough'], severity: 'Severe', initialTemp: '102.8', location: 'Social Gathering', locationDetails: 'Birthday party', activity: 'Socializing', contacts: ['Friend B','Friend C'], diagnosis: 'Flu', notes: 'Knocked me out for almost a week.', vitals: [
+      { id:'v-f1', dateTime: dt(22, 20), temperature:'103.4', spo2:'96', medicine:'Advil/Motrin (Ibuprofen)', dosage:'400mg', doseInterval:'6', notes:'' },
+      { id:'v-f2', dateTime: dt(21, 8),  temperature:'102.6', spo2:'97', medicine:'Tylenol (Acetaminophen)', dosage:'500mg', doseInterval:'6', notes:'' },
+      { id:'v-f3', dateTime: dt(20, 14), temperature:'101.4', spo2:'97', medicine:'NyQuil', dosage:'30ml', doseInterval:'8', notes:'Slept hard' },
+      { id:'v-f4', dateTime: dt(18, 10), temperature:'99.4',  spo2:'98', medicine:'', dosage:'', doseInterval:'', notes:'Fever broke overnight' },
+    ]},
+    { id: 'demo-stomach', symptomStart: dt(58, 22), recoveryDate: dateOnly(56), symptoms: ['Nausea','Vomiting','Diarrhea','Body Aches','Fatigue'], severity: 'Moderate', initialTemp: '99.6', location: 'Restaurant', locationDetails: 'Sushi place downtown', activity: 'Cooking/Eating Out', contacts: [], diagnosis: 'Food Poisoning', notes: 'Strongly suspect the sushi from the night before.', vitals: [
+      { id:'v-s1', dateTime: dt(57, 8),  temperature:'99.4', spo2:'98', medicine:'Pedialyte', dosage:'500ml', doseInterval:'', notes:'' },
+      { id:'v-s2', dateTime: dt(57, 14), temperature:'98.8', spo2:'98', medicine:'Imodium', dosage:'2mg', doseInterval:'', notes:'' },
+    ]},
+    { id: 'demo-allergies', symptomStart: dt(118, 7), recoveryDate: dateOnly(114), symptoms: ['Sneezing','Runny Nose','Eye Irritation','Congestion'], severity: 'Mild', initialTemp: '', location: 'Outdoors', locationDetails: 'Trail run', activity: 'Exercising', contacts: [], diagnosis: 'Seasonal Allergies', notes: 'High pollen count this week.', vitals: [
+      { id:'v-al1', dateTime: dt(118, 8), temperature:'', spo2:'', medicine:'Zyrtec', dosage:'10mg', doseInterval:'24', notes:'' },
+    ]},
+    { id: 'demo-cold-old', symptomStart: dt(215, 9), recoveryDate: dateOnly(210), symptoms: ['Cough','Sore Throat','Fatigue'], severity: 'Mild', initialTemp: '99.2', location: 'Office/Work', locationDetails: '', activity: 'Working', contacts: ['Coworker A'], diagnosis: 'Common Cold', notes: '', vitals: [] },
+  ];
+}
+function enterDemo() {
+  if (demoMode) return;
+  demoMode = true;
+  demoBackup = { entries: JSON.parse(JSON.stringify(entries)), customMeds: [...customMeds], dismissed: new Set(dismissedDoses) };
+  entries = buildDemoEntries();
+  customMeds = [...DEMO_CUSTOM_MEDS];
+  dismissedDoses = new Set();
+  if (history.replaceState && !location.search.includes('demo=1')) history.replaceState(null, '', '?demo=1');
+  const banner = document.getElementById('demo-banner'); if (banner) banner.classList.remove('hidden');
+  if (typeof updateAuthUI === 'function') updateAuthUI();
+  const gcal = document.getElementById('btn-gcal'); if (gcal) gcal.disabled = true;
+  switchView('dashboard');
+  showToast('🎭 Demo mode — sample data only');
+}
+function exitDemo() {
+  if (!demoMode) return;
+  demoMode = false;
+  if (demoBackup) {
+    entries = demoBackup.entries; customMeds = demoBackup.customMeds; dismissedDoses = demoBackup.dismissed;
+    demoBackup = null;
+  } else {
+    entries = []; customMeds = []; dismissedDoses = new Set();
+    loadLocal(); loadCustomMeds(); loadDismissed();
+  }
+  if (history.replaceState) history.replaceState(null, '', location.pathname);
+  const banner = document.getElementById('demo-banner'); if (banner) banner.classList.add('hidden');
+  if (typeof updateAuthUI === 'function') updateAuthUI();
+  if (currentUser && firebaseReady) loadFromFirestore();
+  else switchView('dashboard');
+}
 
 // ═══════════════════════════════════════════════
 // CONSTANTS
@@ -295,7 +372,7 @@ function updateAuthUI() {
   const cu = currentUser;
   document.getElementById('auth-signed-out').classList.toggle('hidden', !!cu);
   document.getElementById('auth-signed-in').classList.toggle('hidden', !cu);
-  document.getElementById('btn-signin').classList.toggle('hidden', !!cu);
+  document.getElementById('btn-signin').classList.toggle('hidden', !!cu || demoMode);
   document.getElementById('btn-signout').classList.toggle('hidden', !cu);
   if (cu) { document.getElementById('user-avatar').src = cu.photoURL||''; document.getElementById('user-name').textContent = cu.displayName||cu.email; }
   else gcalAccessToken = null;
@@ -312,6 +389,7 @@ function signIn() {
 function signOut() { if (!firebaseReady) return; firebase.auth().signOut(); gcalAccessToken = null; updateExportButtons(); showToast('Signed out'); }
 
 async function loadFromFirestore() {
+  if (demoMode) return;
   if (!firebaseReady || !currentUser) return;
   try {
     const doc = await db.collection('users').doc(currentUser.uid).get();
@@ -339,6 +417,7 @@ async function loadFromFirestore() {
   } catch(e) { console.error('Firestore load error:', e); }
 }
 async function saveToFirestore() {
+  if (demoMode) return;
   if (!firebaseReady || !currentUser) return;
   try {
     await db.collection('users').doc(currentUser.uid).set({
@@ -381,7 +460,7 @@ async function syncAllToGCal(){if(!gcalAccessToken){showToast('⚠️ Sign in fi
 // ═══════════════════════════════════════════════
 // LOCAL STORAGE & EXPORT/IMPORT
 // ═══════════════════════════════════════════════
-function saveLocal(){try{localStorage.setItem('illness_entries',JSON.stringify(entries));}catch(e){}}
+function saveLocal(){if(demoMode)return;try{localStorage.setItem('illness_entries',JSON.stringify(entries));}catch(e){}}
 function loadLocal(){try{const r=localStorage.getItem('illness_entries');if(r)entries=JSON.parse(r);}catch(e){}}
 function persist(){saveLocal();saveToFirestore();updateExportButtons();}
 
@@ -621,7 +700,7 @@ function renderDashboard(a){
     {l:'Avg Gap',v:a?.avgGap?a.avgGap+'d':'—',c:'var(--success)'},
     {l:'Risk Factors',v:a?.risks.length||0,c:'var(--warning)'}
   ].map(s=>'<div class="card stat-card"><div class="stat-value" style="color:'+s.c+'">'+s.v+'</div><div class="stat-label">'+s.l+'</div></div>').join('')+'</div>';
-  if(!entries.length)return stats+'<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🏥</div><h2 style="font-size:20px;font-weight:600;margin-bottom:8px">No illnesses logged yet</h2><p style="color:var(--text-secondary);margin-bottom:20px">Start tracking to uncover patterns.</p><button class="btn-primary" style="max-width:280px;margin:0 auto" onclick="switchView(\'log\')">Log Your First Illness</button></div>';
+  if(!entries.length)return stats+'<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🏥</div><h2 style="font-size:20px;font-weight:600;margin-bottom:8px">No illnesses logged yet</h2><p style="color:var(--text-secondary);margin-bottom:20px">Start tracking to uncover patterns — or take a quick tour first.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><button class="btn-primary" style="min-width:240px" onclick="switchView(\'log\')">Log Your First Illness</button><button class="btn btn-outline" style="min-width:160px" onclick="enterDemo()">🎭 Try a Demo</button></div></div>';
   const dosesHTML=renderUpcomingDosesCard();
   let riskHTML='';
   if(a&&a.risks.length)riskHTML='<div class="card"><h3 style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="color:var(--warning)">⚠</span> Top Risk Factors</h3>'+a.risks.map(r=>riskBarHTML(r.score,r.factor)+'<div style="font-size:12px;color:var(--text-secondary);margin:-6px 0 12px 4px">'+esc(r.detail)+'</div>').join('')+'</div>';
@@ -710,7 +789,8 @@ document.getElementById('app-version').textContent = APP_VERSION;
 document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
 loadLocal();
 initFirebase();
-render();
+if (new URLSearchParams(location.search).has('demo')) enterDemo();
+else render();
 </script>
 </body>
 </html>
