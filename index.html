@@ -22,9 +22,13 @@
 <meta name="twitter:image" content="https://itsavibecode.github.io/sick/og-image.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2358a6ff'/%3E%3Cstop offset='100%25' stop-color='%23a371f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='36'%3E🩺%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2358a6ff'/%3E%3Cstop offset='100%25' stop-color='%23a371f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='36'%3E🩺%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- html2canvas for PNG export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<!-- html2canvas is lazy-loaded on first PNG export, see loadHtml2Canvas() -->
 <style>
 :root{--bg-primary:#0d1117;--bg-card:#161b22;--bg-tertiary:#21262d;--bg-input:#0d1117;--text-primary:#e6edf3;--text-secondary:#8b949e;--accent:#58a6ff;--accent-warm:#f78166;--accent-purple:#a371f7;--border:#30363d;--danger:#f85149;--success:#3fb950;--warning:#d29922;
 --temp-normal:#3fb950;--temp-low-grade:#d29922;--temp-fever:#f78166;--temp-high-fever:#f85149}
@@ -82,9 +86,9 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 </style>
 </head>
 <body>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <div id="demo-banner" class="hidden" style="background:linear-gradient(90deg,#a371f7 0%,#58a6ff 100%);color:#fff;padding:8px 16px;display:flex;justify-content:center;align-items:center;gap:14px;font-size:13px;font-weight:500;flex-wrap:wrap"><span>🎭 <strong>Demo Mode</strong> — sample data, nothing is saved</span><button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer">Exit Demo</button></div>
 
@@ -132,7 +136,7 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 // ═══════════════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = 'v0.38';
+const APP_VERSION = 'v0.39';
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -483,10 +487,25 @@ function importJSON(evt){
 // ═══════════════════════════════════════════════
 // PNG EXPORT PER ILLNESS
 // ═══════════════════════════════════════════════
+// Lazy-load html2canvas the first time PNG export is invoked
+let _h2cLoading = null;
+function loadHtml2Canvas() {
+  if (typeof html2canvas === 'function') return Promise.resolve();
+  if (_h2cLoading) return _h2cLoading;
+  _h2cLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload = resolve;
+    s.onerror = () => { _h2cLoading = null; reject(new Error('html2canvas load failed')); };
+    document.head.appendChild(s);
+  });
+  return _h2cLoading;
+}
 async function exportPNG(entryId) {
   const e = entries.find(x => x.id === entryId);
   if (!e) return;
   showToast('⏳ Generating PNG...');
+  try { await loadHtml2Canvas(); } catch(err) { showToast('⚠️ PNG export failed to load'); return; }
   const area = document.getElementById('png-render-area');
   const vitalsRows = (e.vitals||[]).map(v => {
     let parts = [];
@@ -785,12 +804,17 @@ function renderAnalysis(a){
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-document.getElementById('app-version').textContent = APP_VERSION;
-document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
-loadLocal();
-initFirebase();
-if (new URLSearchParams(location.search).has('demo')) enterDemo();
-else render();
+// Wait for DOMContentLoaded so deferred Firebase scripts have executed
+function bootApp() {
+  document.getElementById('app-version').textContent = APP_VERSION;
+  document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
+  loadLocal();
+  initFirebase();
+  if (new URLSearchParams(location.search).has('demo')) enterDemo();
+  else render();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootApp);
+else bootApp();
 </script>
 </body>
 </html>
