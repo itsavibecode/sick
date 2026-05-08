@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.39**
+**Current Version: v0.40**
 
 Track · Analyze · Prevent — A personal illness tracking app with pattern analysis, medicine/vitals logging, Google Calendar sync, and Firebase cloud storage.
 
@@ -35,6 +35,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.40** — Fix the LCP regression that v0.39 accidentally introduced. v0.39 wrapped the inline boot in `DOMContentLoaded`, which made `render()` wait for the deferred Firebase scripts to finish downloading before painting the dashboard — mobile FCP/LCP went from 3.4s to 4.6/5.1s. v0.40 restores the synchronous inline render and only defers the Firebase auth bootstrap (the part that pulls the auth iframe + getProjectConfig) to `requestIdleCallback` after first paint
 - **v0.39** — Performance pass driven by PSI 84 mobile baseline (FCP/LCP both 3.4s, 520ms unused JS): defer the 3 Firebase SDK scripts and wrap the inline boot in DOMContentLoaded so they no longer block the parser; lazy-load html2canvas on first PNG export click instead of loading 50KB eagerly in head; async-load Google Fonts via `media=print onload swap` with a `<noscript>` fallback; add preconnects for fonts.googleapis.com / fonts.gstatic.com / www.gstatic.com / cdnjs.cloudflare.com so the network handshake overlaps with parsing
 - **v0.38** — Demo Mode: empty-state "🎭 Try a Demo" button + shareable `?demo=1` URL load 5 in-memory sample illnesses (active illness with live dose timers, severe flu showing fever color progression, food poisoning, allergies, recurring office cold) + 1 custom med, with recurring location/contact patterns so the Analysis tab shows real risk factors. Demo runs entirely in-memory — saveLocal / saveToFirestore / saveDismissed / saveCustomMeds all short-circuit so real data is never touched. Sign-in and Google Calendar sync are hidden in demo. Backup/restore preserves any existing real state across enter/exit.
 - **v0.37** — Open Graph + Twitter card meta tags, canonical URL, theme-color, and a 1200×630 OG image (gradient + stethoscope + angled dashboard screenshot) so links unfurl with a real preview on Discord, iMessage, Slack, X, and search engines instead of falling back to plain text

@@ -136,7 +136,7 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 // ═══════════════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = 'v0.39';
+const APP_VERSION = 'v0.40';
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -804,17 +804,21 @@ function renderAnalysis(a){
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-// Wait for DOMContentLoaded so deferred Firebase scripts have executed
-function bootApp() {
-  document.getElementById('app-version').textContent = APP_VERSION;
-  document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
-  loadLocal();
+// Render synchronously — DOM is already parsed at this point in body.
+// Don't wait for DOMContentLoaded because that would block on deferred Firebase scripts.
+document.getElementById('app-version').textContent = APP_VERSION;
+document.title = 'Illness Tracker ' + APP_VERSION + ' — Track · Analyze · Prevent';
+loadLocal();
+if (new URLSearchParams(location.search).has('demo')) enterDemo();
+else render();
+// Defer Firebase auth init until after first paint — auth iframe + getProjectConfig
+// add ~100KB of network chatter that shouldn't compete with LCP.
+function bootFirebase() {
+  if (typeof firebase === 'undefined') { setTimeout(bootFirebase, 200); return; }
   initFirebase();
-  if (new URLSearchParams(location.search).has('demo')) enterDemo();
-  else render();
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootApp);
-else bootApp();
+if ('requestIdleCallback' in window) requestIdleCallback(bootFirebase, { timeout: 3000 });
+else window.addEventListener('load', () => setTimeout(bootFirebase, 100));
 </script>
 </body>
 </html>
