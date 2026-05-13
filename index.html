@@ -88,7 +88,7 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 <body>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- firebase-firestore-compat.js is lazy-loaded by ensureFirestore() on first use -->
 
 <div id="demo-banner" class="hidden" style="background:linear-gradient(90deg,#a371f7 0%,#58a6ff 100%);color:#fff;padding:8px 16px;display:flex;justify-content:center;align-items:center;gap:14px;font-size:13px;font-weight:500;flex-wrap:wrap"><span>🎭 <strong>Demo Mode</strong> — sample data, nothing is saved</span><button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer">Exit Demo</button></div>
 
@@ -136,7 +136,7 @@ body{font-family:'DM Sans','Segoe UI',sans-serif;background:var(--bg-primary);co
 // ═══════════════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = 'v0.40';
+const APP_VERSION = 'v0.41';
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -155,9 +155,11 @@ function loadDismissed() { try { const r = localStorage.getItem('illness_dismiss
 function saveDismissed() {
   if (demoMode) return;
   try { localStorage.setItem('illness_dismissed_doses', JSON.stringify([...dismissedDoses])); } catch(e) {}
-  // Sync to Firestore
-  if (firebaseReady && currentUser && db) {
-    try { db.collection('users').doc(currentUser.uid).set({ dismissedDoses: [...dismissedDoses] }, { merge: true }); } catch(e) {}
+  // Sync to Firestore (lazy-load firestore if it hasn't been pulled yet)
+  if (firebaseReady && currentUser) {
+    ensureFirestore().then(d => {
+      try { d.collection('users').doc(currentUser.uid).set({ dismissedDoses: [...dismissedDoses] }, { merge: true }); } catch(e) {}
+    }).catch(()=>{});
   }
 }
 function dismissDose(key) { dismissedDoses.add(key); saveDismissed(); render(); }
@@ -170,7 +172,11 @@ function loadCustomMeds() { try { const r = localStorage.getItem('illness_custom
 function saveCustomMeds() {
   if (demoMode) return;
   try { localStorage.setItem('illness_custom_meds', JSON.stringify(customMeds)); } catch(e) {}
-  if (firebaseReady && currentUser && db) { try { db.collection('users').doc(currentUser.uid).set({ customMeds }, { merge: true }); } catch(e) {} }
+  if (firebaseReady && currentUser) {
+    ensureFirestore().then(d => {
+      try { d.collection('users').doc(currentUser.uid).set({ customMeds }, { merge: true }); } catch(e) {}
+    }).catch(()=>{});
+  }
 }
 function getAllMeds() {
   const all = [...COMMON_MEDS, ...customMeds.filter(m => !COMMON_MEDS.includes(m))];
@@ -365,11 +371,33 @@ const FIREBASE_CONFIG = {
 };
 const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 
+// Lazy-load firebase-firestore-compat the first time we need Firestore.
+let _firestoreLoading = null;
+function ensureFirestore() {
+  if (db) return Promise.resolve(db);
+  if (_firestoreLoading) return _firestoreLoading;
+  _firestoreLoading = new Promise((resolve, reject) => {
+    if (typeof firebase === 'undefined') { _firestoreLoading = null; return reject(new Error('firebase not loaded')); }
+    const init = () => { try { db = firebase.firestore(); resolve(db); } catch(e) { _firestoreLoading = null; reject(e); } };
+    if (firebase.firestore) return init();
+    const s = document.createElement('script');
+    s.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+    s.onload = init;
+    s.onerror = () => { _firestoreLoading = null; reject(new Error('firestore-compat load failed')); };
+    document.head.appendChild(s);
+  });
+  return _firestoreLoading;
+}
 function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.firestore(); firebaseReady = true;
-    firebase.auth().onAuthStateChanged(user => { currentUser = user; updateAuthUI(); if (user) loadFromFirestore(); });
+    firebaseReady = true;
+    // Don't init firestore here — wait until the user is signed in, then lazy-load
+    firebase.auth().onAuthStateChanged(user => {
+      currentUser = user;
+      updateAuthUI();
+      if (user) ensureFirestore().then(() => loadFromFirestore()).catch(e => console.warn('firestore load failed:', e));
+    });
   } catch(e) { console.warn('Firebase init failed:', e); }
 }
 function updateAuthUI() {
@@ -396,6 +424,7 @@ async function loadFromFirestore() {
   if (demoMode) return;
   if (!firebaseReady || !currentUser) return;
   try {
+    await ensureFirestore();
     const doc = await db.collection('users').doc(currentUser.uid).get();
     if (doc.exists) {
       const d = doc.data();
@@ -424,6 +453,7 @@ async function saveToFirestore() {
   if (demoMode) return;
   if (!firebaseReady || !currentUser) return;
   try {
+    await ensureFirestore();
     await db.collection('users').doc(currentUser.uid).set({
       entries, customMeds, dismissedDoses: [...dismissedDoses],
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
