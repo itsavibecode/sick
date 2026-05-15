@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.41**
+**Current Version: v0.42**
 
 Track · Analyze · Prevent — A personal illness tracking app with pattern analysis, medicine/vitals logging, Google Calendar sync, and Firebase cloud storage.
 
@@ -10,6 +10,9 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 |------|-------------|
 | `index.html` | Current release — single-file app, served by GitHub Pages |
 | `og-image.png` | 1200×630 social preview image (Open Graph + Twitter) |
+| `site.webmanifest` | PWA manifest — lets visitors install to home screen |
+| `favicon.ico` / `favicon-16.png` / `favicon-32.png` / `apple-touch-icon.png` / `icon-192.png` / `icon-512.png` / `icon-maskable.png` | Full icon set used by the favicon + PWA install + Android adaptive icons |
+| `.scripts/build-icons.py` | Regenerates the icon set from the brand gradient + 🩺 emoji |
 | `README.md` | This file |
 
 ## Features
@@ -35,6 +38,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.42** — Installable as a PWA. Replaced the inline SVG-data-URI favicons with a real PNG/ICO icon set (16, 32, 48 in `favicon.ico`, 180 `apple-touch-icon`, 192, 512, and a 512 maskable variant with Android safe-zone padding). Added `site.webmanifest` with `display: standalone`, theme color matching the dark UI, the same brand gradient + 🩺 design, and `start_url: /sick/`. Visitors on Android Chrome or iOS Safari get the "Add to Home Screen" prompt, and the launched app opens chrome-less like a native tracker. Icon set is regenerable from `.scripts/build-icons.py`.
 - **v0.41** — Lazy-load `firebase-firestore-compat.js` (99KB) so it stays out of the critical path until a user signs in. The eager `<script defer>` was removed; an `ensureFirestore()` helper now injects the script on first need (the auth listener calls it when the user signs in, and `saveDismissed` / `saveCustomMeds` / `saveToFirestore` / `loadFromFirestore` all `await` it). First-paint downloads went from ~150KB of Firebase compat code to ~50KB — only `firebase-app` + `firebase-auth` are eager-deferred. Unauthenticated visitors (the 99% case) never pay the firestore tax.
 - **v0.40** — Fix the LCP regression that v0.39 accidentally introduced. v0.39 wrapped the inline boot in `DOMContentLoaded`, which made `render()` wait for the deferred Firebase scripts to finish downloading before painting the dashboard — mobile FCP/LCP went from 3.4s to 4.6/5.1s. v0.40 restores the synchronous inline render and only defers the Firebase auth bootstrap (the part that pulls the auth iframe + getProjectConfig) to `requestIdleCallback` after first paint
 - **v0.39** — Performance pass driven by PSI 84 mobile baseline (FCP/LCP both 3.4s, 520ms unused JS): defer the 3 Firebase SDK scripts and wrap the inline boot in DOMContentLoaded so they no longer block the parser; lazy-load html2canvas on first PNG export click instead of loading 50KB eagerly in head; async-load Google Fonts via `media=print onload swap` with a `<noscript>` fallback; add preconnects for fonts.googleapis.com / fonts.gstatic.com / www.gstatic.com / cdnjs.cloudflare.com so the network handshake overlaps with parsing
