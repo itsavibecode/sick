@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.42**
+**Current Version: v0.43**
 
 Live deployments: [itsavibecode.github.io/sick](https://itsavibecode.github.io/sick/) (primary) and [dev.rizzo.cc/sick](https://dev.rizzo.cc/sick/) (mirror).
 
@@ -40,6 +40,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.43** — Add a discreet page footer with a "🎭 Try the demo" link and the app version stamp. Helps visitors who scroll past the empty state (or already have entries) still discover the demo without re-landing.
 - **v0.42** — Installable as a PWA. Replaced the inline SVG-data-URI favicons with a real PNG/ICO icon set (16, 32, 48 in `favicon.ico`, 180 `apple-touch-icon`, 192, 512, and a 512 maskable variant with Android safe-zone padding). Added `site.webmanifest` with `display: standalone`, theme color matching the dark UI, the same brand gradient + 🩺 design, and `start_url: /sick/`. Visitors on Android Chrome or iOS Safari get the "Add to Home Screen" prompt, and the launched app opens chrome-less like a native tracker. Icon set is regenerable from `.scripts/build-icons.py`.
 - **v0.41** — Lazy-load `firebase-firestore-compat.js` (99KB) so it stays out of the critical path until a user signs in. The eager `<script defer>` was removed; an `ensureFirestore()` helper now injects the script on first need (the auth listener calls it when the user signs in, and `saveDismissed` / `saveCustomMeds` / `saveToFirestore` / `loadFromFirestore` all `await` it). First-paint downloads went from ~150KB of Firebase compat code to ~50KB — only `firebase-app` + `firebase-auth` are eager-deferred. Unauthenticated visitors (the 99% case) never pay the firestore tax.
 - **v0.40** — Fix the LCP regression that v0.39 accidentally introduced. v0.39 wrapped the inline boot in `DOMContentLoaded`, which made `render()` wait for the deferred Firebase scripts to finish downloading before painting the dashboard — mobile FCP/LCP went from 3.4s to 4.6/5.1s. v0.40 restores the synchronous inline render and only defers the Firebase auth bootstrap (the part that pulls the auth iframe + getProjectConfig) to `requestIdleCallback` after first paint
