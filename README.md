@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.44**
+**Current Version: v0.45**
 
 Live deployments: [itsavibecode.github.io/sick](https://itsavibecode.github.io/sick/) (primary) and [dev.rizzo.cc/sick](https://dev.rizzo.cc/sick/) (mirror).
 
@@ -40,6 +40,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.45** — Stat panel polish: the expanded card and the slide-down panel now read as one connected tab + content unit (matching colored top border + a downward-pointing notch on the card that aligns with the panel below, per-stat color via `[data-stat]` selectors). The Avg Duration panel now shows each illness's start → recovery dates, and the Avg Gap panel shows the dates of both endpoints for each gap.
 - **v0.44** — Tappable dashboard stat cards. Tap any of the 4 top stats (Total Illnesses, Avg Duration, Avg Gap, Risk Factors) and a panel slides down below the grid with the data behind that number — full illness list, per-illness duration bars, gap-between-pairs bars, or the risk-factor breakdown. Chevron rotates to signal the expanded state; tap again to collapse; open state persists across re-renders.
 - **v0.43** — Add a discreet page footer with a "🎭 Try the demo" link and the app version stamp. Helps visitors who scroll past the empty state (or already have entries) still discover the demo without re-landing.
 - **v0.42** — Installable as a PWA. Replaced the inline SVG-data-URI favicons with a real PNG/ICO icon set (16, 32, 48 in `favicon.ico`, 180 `apple-touch-icon`, 192, 512, and a 512 maskable variant with Android safe-zone padding). Added `site.webmanifest` with `display: standalone`, theme color matching the dark UI, the same brand gradient + 🩺 design, and `start_url: /sick/`. Visitors on Android Chrome or iOS Safari get the "Add to Home Screen" prompt, and the launched app opens chrome-less like a native tracker. Icon set is regenerable from `.scripts/build-icons.py`.
