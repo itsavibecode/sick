@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.45**
+**Current Version: v0.46**
 
 Live deployments: [itsavibecode.github.io/sick](https://itsavibecode.github.io/sick/) (primary) and [dev.rizzo.cc/sick](https://dev.rizzo.cc/sick/) (mirror).
 
@@ -40,6 +40,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.46** — Make the stat card + detail panel actually touch, like a real tab + content area. When a stat is expanded: the grid drops its bottom margin (via `.stats-grid:has(+ .stat-detail.open)`) so the panel sits flush against the cards above; the active card flattens its bottom-left/right corners; the panel flattens its top-left/right corners; their matching colored top borders meet, reading as one continuous unit. Removed the now-redundant downward-pointing notch.
 - **v0.45** — Stat panel polish: the expanded card and the slide-down panel now read as one connected tab + content unit (matching colored top border + a downward-pointing notch on the card that aligns with the panel below, per-stat color via `[data-stat]` selectors). The Avg Duration panel now shows each illness's start → recovery dates, and the Avg Gap panel shows the dates of both endpoints for each gap.
 - **v0.44** — Tappable dashboard stat cards. Tap any of the 4 top stats (Total Illnesses, Avg Duration, Avg Gap, Risk Factors) and a panel slides down below the grid with the data behind that number — full illness list, per-illness duration bars, gap-between-pairs bars, or the risk-factor breakdown. Chevron rotates to signal the expanded state; tap again to collapse; open state persists across re-renders.
 - **v0.43** — Add a discreet page footer with a "🎭 Try the demo" link and the app version stamp. Helps visitors who scroll past the empty state (or already have entries) still discover the demo without re-landing.
