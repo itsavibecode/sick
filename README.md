@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.48**
+**Current Version: v0.49**
 
 Live deployments: [itsavibecode.github.io/sick](https://itsavibecode.github.io/sick/) (primary) and [dev.rizzo.cc/sick](https://dev.rizzo.cc/sick/) (mirror).
 
@@ -40,6 +40,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.49** — Full backup/restore + nicely formatted PDF report. The old "💾 JSON" button only exported `entries`; the new "💾 Backup" exports everything (entries + customMeds + dismissedDoses + schema metadata + counts) under a `illness-tracker/v1` versioned schema. Import is backward-compatible — bare-array files from older versions still work, and full-backup files restore meds and dismissed-dose state too. New "📄 PDF" button opens a print-to-PDF dialog with a polished report: header with date range, 4-up summary cards, risk factors block, per-illness sections with symptom chips + severity badges + vitals tables, timing insights, and most-used medicines. Rendered via hidden iframe so popup blockers don't interfere; user picks "Save as PDF" from the browser's native print dialog.
 - **v0.48** — Smoother stat-panel reveal. v0.47 used `max-height: 0 → 3000px` which transitioned to a 3000px ceiling regardless of how short the actual content was — so the visible reveal raced past in the first ~20% of the duration. Switched to the modern `grid-template-rows: 0fr → 1fr` trick which transitions to the panel's natural height, so the entire 0.55s duration is spent on the visible motion. Easing changed to material-style `cubic-bezier(.4,0,.2,1)`, opacity fade replaces the unused translateY animation.
 - **v0.47** — Two stat-panel animation fixes: (1) the panel was sliding in from the LEFT because it was reusing the `fadeIn` keyframe (which has `translateX(-50%)` baked in for the toast). New dedicated `slideDownFade` keyframe with `translateY` only, so it slides down from the top. (2) The animation was replaying every 30s as the dose-timer auto-refresh re-rendered the dashboard. Moved the animation to a `.entering` class that `toggleStat` adds on open and removes after 400ms, so re-renders don't re-trigger it.
 - **v0.46** — Make the stat card + detail panel actually touch, like a real tab + content area. When a stat is expanded: the grid drops its bottom margin (via `.stats-grid:has(+ .stat-detail.open)`) so the panel sits flush against the cards above; the active card flattens its bottom-left/right corners; the panel flattens its top-left/right corners; their matching colored top borders meet, reading as one continuous unit. Removed the now-redundant downward-pointing notch.
