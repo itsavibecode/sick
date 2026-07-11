@@ -1,6 +1,6 @@
 # Illness Tracker
 
-**Current Version: v0.50**
+**Current Version: v0.51**
 
 Live deployments: [itsavibecode.github.io/sick](https://itsavibecode.github.io/sick/) (primary) and [dev.rizzo.cc/sick](https://dev.rizzo.cc/sick/) (mirror).
 
@@ -11,6 +11,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 | File | Description |
 |------|-------------|
 | `index.html` | Current release — single-file app, served by GitHub Pages |
+| `privacy.html` | Privacy Policy + Terms of Service + Medical Disclaimer, linked from the footer |
 | `og-image.png` | 1200×630 social preview image (Open Graph + Twitter) |
 | `site.webmanifest` | PWA manifest — lets visitors install to home screen |
 | `favicon.ico` / `favicon-16.png` / `favicon-32.png` / `apple-touch-icon.png` / `icon-192.png` / `icon-512.png` / `icon-maskable.png` | Full icon set used by the favicon + PWA install + Android adaptive icons |
@@ -40,6 +41,7 @@ Track · Analyze · Prevent — A personal illness tracking app with pattern ana
 
 ## Version History
 
+- **v0.51** — Added a dedicated `privacy.html` page with three sections: Privacy Policy (what's collected, where it's stored, who can access it, third-party assets, Google Calendar scope, cookies, data export & deletion), Terms of Service ("provided as-is", you own your data, no commercial use, limitation of liability), and Medical Disclaimer (not a medical device, not medical advice, emergency guidance, dose-timer caveats, temperature-color caveats, SpO2 caveats). Style-matched to the main app (dark theme, brand gradient), self-contained with relative URLs so the mirror scrub picks it up cleanly. Footer of the main app now links to it as "Privacy · Terms · Disclaimer".
 - **v0.50** — New **📅 Calendar** tab. Month grid view shows each illness as severity-colored bars (mild green / moderate orange / severe red) spanning its date range — start dates have a flat-left bar end, recovery dates a flat-right end, so you can read the duration at a glance. Stats card on top: sick days this month, illness count, % of month. Bars are tappable to open the entry in History. Prev/next month nav + "Jump to today" button when off the current month. Below the grid: list of illnesses overlapping this month, plus the existing Google Calendar sync + .ics export controls. Connect-once Google Calendar sync (via a CF worker storing OAuth refresh tokens, similar to pawprints-worker) is on the roadmap — current session-only OAuth still works.
 - **v0.49** — Full backup/restore + nicely formatted PDF report. The old "💾 JSON" button only exported `entries`; the new "💾 Backup" exports everything (entries + customMeds + dismissedDoses + schema metadata + counts) under a `illness-tracker/v1` versioned schema. Import is backward-compatible — bare-array files from older versions still work, and full-backup files restore meds and dismissed-dose state too. New "📄 PDF" button opens a print-to-PDF dialog with a polished report: header with date range, 4-up summary cards, risk factors block, per-illness sections with symptom chips + severity badges + vitals tables, timing insights, and most-used medicines. Rendered via hidden iframe so popup blockers don't interfere; user picks "Save as PDF" from the browser's native print dialog.
 - **v0.48** — Smoother stat-panel reveal. v0.47 used `max-height: 0 → 3000px` which transitioned to a 3000px ceiling regardless of how short the actual content was — so the visible reveal raced past in the first ~20% of the duration. Switched to the modern `grid-template-rows: 0fr → 1fr` trick which transitions to the panel's natural height, so the entire 0.55s duration is spent on the visible motion. Easing changed to material-style `cubic-bezier(.4,0,.2,1)`, opacity fade replaces the unused translateY animation.
